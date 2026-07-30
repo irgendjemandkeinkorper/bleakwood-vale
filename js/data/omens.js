@@ -31,5 +31,17 @@ export const OMENS = [
   {glyph:'⚕', title:'A Trepanning Kit, One Instrument Short', line:'The case still smells of camphor.'},
   {glyph:'↺', title:'A Music Box, Wound Backward', line:'It plays the tune in reverse, and slower with each turn.'},
   {glyph:'⚜', title:'The Family Signet, Melted Down', line:'Reforged into something that is not a ring.'},
-  {glyph:'✙', title:'A Widow’s Veil, Bought Too Soon', line:'Purchased the week before the death, not after.'}
+  {glyph:'✙', title:'A Widow’s Veil, Bought Too Soon', line:'Purchased the week before the death, not after.'},
+  {glyph:'⚗', title:'An Alembic, Still Warm', line:'Whatever was distilled in it, someone drank first.'},
+  {glyph:'✎', title:'A Diary Entry, Torn Free', line:'The page before it ends mid-sentence. The page after does too.'},
+  {glyph:'⌛', title:'An Hourglass, Running Backward', line:'The sand climbs upward, patient as anything.'},
+  {glyph:'⚱', title:'A Funerary Urn, Too Light', line:'Ash weighs more than this. Someone should ask what’s inside instead.'},
+  {glyph:'☄', title:'A Falling Star, Witnessed by Three', line:'None of the three agree on where it landed.'},
+  {glyph:'✾', title:'A Black Orchid, Hand-Delivered', line:'No card. No name. The thorns were left on, deliberately.'},
+  {glyph:'❉', title:'A Firework That Would Not Finish', line:'It hung in the sky far longer than powder should allow.'},
+  {glyph:'⚖', title:'A Set of Scales, One Side Empty', line:'The other side holds something nobody will name aloud.'},
+  {glyph:'☨', title:'A Grave Marker, Name Filed Off', line:'The stone remembers a shape where letters used to be.'},
+  {glyph:'⛧', title:'A Circle, Salted and Broken', line:'Drawn by someone who knew exactly what they were keeping out. Or in.'},
+  {glyph:'⚚', title:'A Physician’s Cane, Silver-Topped', line:'Hollow. It has carried more than its owner’s weight.'},
+  {glyph:'✵', title:'A Star Chart, One Star Added by Hand', line:'It corresponds to nothing in the printed sky.'}
 ];

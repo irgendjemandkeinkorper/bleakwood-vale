@@ -1,7 +1,7 @@
 import { $, esc, nl2br, toneBadge, ACT_NAMES } from '../engine/utils.js';
 import { TONES, TONE_GLOSS, EPILOGUE_QUESTIONS } from '../data/index.js';
 import { State } from '../engine/state.js';
-import { show } from './screens.js';
+import { show, openOverlay, closeOverlay } from './screens.js';
 import { faceUp } from '../engine/rules.js';
 import { liveToggleStrike } from '../sync/liveActions.js';
 
@@ -56,7 +56,7 @@ export function renderChronicle(interim){
   $('scr-chronicle').innerHTML = `
     <div class="masthead" style="padding-top:16px">
       <div class="m-over">${over?'The Tale Is Told':'The Record, So Far'}</div>
-      <h1 style="font-size:2.4rem">THE BLACKWOOD VALE CHRONICLE</h1>
+      <h1 style="font-size:2.4rem">THE BLEAKWOOD VALE CHRONICLE</h1>
       <div class="m-sub">${esc(G.hook.title)} · being a true &amp; faithful account of the death of ${esc(G.victim.name)}</div>
     </div>
     <div class="panel tight">
@@ -93,7 +93,6 @@ export function toggleStrike(gi, interim){
 
 /* ---------------- rules overlay ---------------- */
 export function showRules(){
-  lastFocusBeforeOverlay = document.activeElement;
   $('overlay-content').innerHTML = `
     <h2 style="color:var(--gold)">How the Tale Is Told</h2>
     <div class="panel tight small" style="line-height:1.7">
@@ -108,14 +107,8 @@ export function showRules(){
       <p><strong style="color:var(--blood-bright)">The Strike.</strong> Anyone may strike anything from the story at any moment — no questions asked, no reasons owed. Use the ☒ in the Record, or simply say so aloud. The stricken thing never was. Care for the people at your table above all else.</p>
     </div>
     <div class="btnrow"><button class="primary" onclick="closeOverlay()">Return</button></div>`;
-  $('overlay').style.display='block';
+  openOverlay();
   $('overlay-content').querySelector('button')?.focus();
-}
-let lastFocusBeforeOverlay = null;
-export function closeOverlay(){
-  $('overlay').style.display='none';
-  lastFocusBeforeOverlay?.focus?.();
-  lastFocusBeforeOverlay = null;
 }
 
 export function initOverlayDismiss(){

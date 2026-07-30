@@ -49,7 +49,9 @@ Prepend the relevant block to every prompt below (or save it as a reusable
 > gold, oxblood red, deep moss and slate greens, pale moonlight grey-green.
 > No text, no letters, no words, no borders, no frame — full-bleed image
 > only. Atmosphere of fog, candlelight, and dread; unsettling but not gory
-> or graphic.
+> or graphic. A single unified image only — one scene, one figure, not a
+> repeating pattern, not a triptych, not tiled, not a grid or filmstrip of
+> multiple panels or copies.
 
 **Tone → light accent:** Obsession → sourceless amber/rust glow · Guilt →
 oxblood-red undertone in the shadows · Dread → cold pale moss-grey-green
@@ -65,7 +67,9 @@ fog light.
 > or midnight background, small celestial motifs (a crescent moon or a
 > star) worked into the composition as symbolism, not decoration. No
 > literal card frame, no text, no numerals. Mood: mystical, ominous,
-> ritualistic rather than cinematic.
+> ritualistic rather than cinematic. A single unified image only — one
+> figure or object, not a repeating pattern, not a triptych, not tiled,
+> not a grid or filmstrip of multiple panels or copies of the subject.
 
 **Tone → symbolic motif:** Obsession → flame / coins / gilded halo · Guilt
 → red thread / wilting rose / broken chain · Dread → raven / crescent moon
@@ -76,7 +80,7 @@ square (1:1) for Omens, which render small in the Gallery.
 
 ---
 
-## 1. Archetypes (40 images — front + turned, ×2 styles)
+## 1. Archetypes (64 images — front + turned, ×2 styles)
 
 Each Archetype is two-sided: the face-up side at setup, and the "turned"
 side once its flip condition triggers mid-game. Both styles get a front
@@ -204,9 +208,81 @@ the other side's Tone.
 - **Turned (Guilt) — Style B.** The same woman with one hand resting on a shrouded form rendered as a flat white shape, a red thread stitched through her other palm, oxblood and gold linework.
   Save as `art/images/tarot/archetypes/the-undertakers-daughter--turned.jpg`
 
+### The Blind Fortune-Teller
+*Reads palms and tea-leaves at the market cross for pennies; lost her sight nine years ago, and swears she has seen more clearly since.*
+
+- **Front (Dread) — Style A.** A blind fortune-teller in a threadbare shawl, seated at a market stall lined with tea-leaves and a chipped crystal, her clouded eyes turned unerringly toward the viewer as if she can see them anyway, cold pale fog-light at the market's edge.
+  Save as `art/images/painterly/archetypes/the-blind-fortune-teller--front.jpg`
+- **Front (Dread) — Style B.** Frontal tarot portrait, clouded blind eyes facing forward unerringly, tea-leaves and a cracked crystal ball held before her like an offering, a crescent moon halo, cold jewel-tone slate/black palette.
+  Save as `art/images/tarot/archetypes/the-blind-fortune-teller--front.jpg`
+- **Turned (Obsession) — Style A.** The same fortune-teller alone by candlelight, counting coins into neat towers on her table, her sightless gaze fixed on nothing, an unsettling private smile, warm amber candle-glow.
+  Save as `art/images/painterly/archetypes/the-blind-fortune-teller--turned.jpg`
+- **Turned (Obsession) — Style B.** The same seer with coins stacked in neat towers at her feet, a flame-motif halo, warm amber jewel-tone palette, her blind eyes catching the light strangely.
+  Save as `art/images/tarot/archetypes/the-blind-fortune-teller--turned.jpg`
+
+### The Pawnbroker
+*Keeps the shop beneath the three brass balls; knows exactly what every family in the Vale has quietly sold him, and precisely what it means that they did.*
+
+- **Front (Obsession) — Style A.** A shrewd pawnbroker in a waistcoat and spectacles, standing behind a counter crowded with unclaimed rings, watches, and lockets, sourceless amber gaslight from a hanging lamp.
+  Save as `art/images/painterly/archetypes/the-pawnbroker--front.jpg`
+- **Front (Obsession) — Style B.** Frontal tarot portrait, a scale of judgement balanced in one hand, unclaimed rings and watches arranged like offerings at his feet, amber and brass linework, deep black background.
+  Save as `art/images/tarot/archetypes/the-pawnbroker--front.jpg`
+- **Turned (Guilt) — Style A.** The same pawnbroker alone after closing, turning a single item over and over in his hands under a guttering candle, oxblood-red light, his expression unreadable.
+  Save as `art/images/painterly/archetypes/the-pawnbroker--turned.jpg`
+- **Turned (Guilt) — Style B.** The same pawnbroker with a single locket held to his chest, a red-thread motif winding around his other wrist, oxblood and gold linework, deep black background.
+  Save as `art/images/tarot/archetypes/the-pawnbroker--turned.jpg`
+
+### The Travelling Illusionist
+*Performs impossible things nightly under canvas and gaslight; has started to suspect that one or two of his tricks have stopped being tricks.*
+
+- **Front (Obsession) — Style A.** A sharp-suited stage illusionist mid-flourish under canvas and gaslight, cards fanned impossibly in one hand, sourceless amber spotlight-glow, a knowing showman's smile.
+  Save as `art/images/painterly/archetypes/the-travelling-illusionist--front.jpg`
+- **Front (Obsession) — Style B.** Frontal tarot portrait, cards fanned in one hand like a sunburst, a rabbit-and-hat motif at his feet rendered as flat icon, amber and brass linework, deep black background.
+  Save as `art/images/tarot/archetypes/the-travelling-illusionist--front.jpg`
+- **Turned (Dread) — Style A.** The same illusionist alone backstage at night, staring at a trick prop that has done something it was never built to do, cold pale fog-light, his showman's composure gone.
+  Save as `art/images/painterly/archetypes/the-travelling-illusionist--turned.jpg`
+- **Turned (Dread) — Style B.** The same illusionist with his own reflection stepping out of a mirror behind him, unwatched, a crescent moon and raven motif, cold jewel-tone slate/black palette.
+  Save as `art/images/tarot/archetypes/the-travelling-illusionist--turned.jpg`
+
+### The Lady’s Companion
+*Paid to be present and not to be noticed; has spent a decade in rooms where the truth was spoken as though she wasn’t in them.*
+
+- **Front (Guilt) — Style A.** A plainly-dressed lady’s companion standing a precise half-step behind an empty ornate chair in a drawing room, hands folded, eyes lowered, oxblood-red undertone in the shadows.
+  Save as `art/images/painterly/archetypes/the-ladys-companion--front.jpg`
+- **Front (Guilt) — Style B.** Frontal tarot portrait, standing precisely half a step behind an ornate empty chair rendered as a flat throne shape, oxblood and gold linework, deep black background.
+  Save as `art/images/tarot/archetypes/the-ladys-companion--front.jpg`
+- **Turned (Dread) — Style A.** The same companion alone at a writing desk late at night, pen paused mid-sentence over a letter she is visibly deciding whether to send, cold pale fog-light through a curtained window.
+  Save as `art/images/painterly/archetypes/the-ladys-companion--turned.jpg`
+- **Turned (Dread) — Style B.** The same companion with a sealed letter held against her chest, a raven perched on the chair behind her, cold jewel-tone slate/black palette.
+  Save as `art/images/tarot/archetypes/the-ladys-companion--turned.jpg`
+
+### The Penny Press Reporter
+*Chases the grimmest story in the Vale with an appetite she tells herself is only professional; has not yet found the line she won’t cross for a byline.*
+
+- **Front (Obsession) — Style A.** A sharp-eyed young reporter in a rumpled coat, notebook and pencil in hand, leaning in at the edge of a crime scene’s lamplight, warm amber gaslight, an expression of hungry professional interest.
+  Save as `art/images/painterly/archetypes/the-penny-press-reporter--front.jpg`
+- **Front (Obsession) — Style B.** Frontal tarot portrait, notebook and pencil held aloft like a scribe’s tools, a printing-press motif at her feet, amber and brass linework, deep black background.
+  Save as `art/images/tarot/archetypes/the-penny-press-reporter--front.jpg`
+- **Turned (Guilt) — Style A.** The same reporter alone at a print-shop desk at night, staring at a headline she has just written and is now afraid to run, oxblood-red light from a single desk lamp.
+  Save as `art/images/painterly/archetypes/the-penny-press-reporter--turned.jpg`
+- **Turned (Guilt) — Style B.** The same reporter with a torn newspaper page in one hand, a red-thread motif trailing from the print, oxblood and gold linework, deep black background.
+  Save as `art/images/tarot/archetypes/the-penny-press-reporter--turned.jpg`
+
+### The Climbing Boy
+*A chimney sweep’s apprentice, small enough to fit where grown men cannot; has been inside the flues of every great house in the Vale, and seen most of them from the one place nobody thinks to hide anything.*
+
+- **Front (Dread) — Style A.** A soot-streaked climbing boy no more than ten, wedged halfway up a narrow brick chimney flue, one eye visible in a shaft of light from below, cold pale fog-grey light.
+  Save as `art/images/painterly/archetypes/the-climbing-boy--front.jpg`
+- **Front (Dread) — Style B.** Frontal tarot portrait, small figure framed inside a flat chimney-flue shape like a keyhole, a single eye motif, cold jewel-tone slate/black palette.
+  Save as `art/images/tarot/archetypes/the-climbing-boy--front.jpg`
+- **Turned (Guilt) — Style A.** The same boy sitting on a rooftop at dawn, looking down through a chimney pot at something in the room below that he cannot un-see, oxblood-red dawn light struggling through smoke.
+  Save as `art/images/painterly/archetypes/the-climbing-boy--turned.jpg`
+- **Turned (Guilt) — Style B.** The same climbing boy seated on a rooftop with a coin held tightly in one sooty fist, oxblood and gold linework, deep black background.
+  Save as `art/images/tarot/archetypes/the-climbing-boy--turned.jpg`
+
 ---
 
-## 2. Hooks (8 images — one per mystery, ×2 styles)
+## 2. Hooks (24 images — one per mystery, ×2 styles)
 
 Portrait cover art for the scenario-select screen. No named characters —
 these are scene-setting, establishing shots.
@@ -235,9 +311,57 @@ these are scene-setting, establishing shots.
 - **Style B.** A gothic tarot card composition: a pale ball gown floating on a flat black river rendered as rippling linework, a crescent moon haloing the scene, deep black background, teal/gold linework.
   Save as `art/images/tarot/hooks/debutante.jpg`
 
+### The Cell That Was Never Opened
+- **Style A.** The exterior of a grim stone asylum on a fog-bound moor at dusk, one barred cell window lit from within though the door beside it stands slightly ajar, a frost-covered kitchen garden visible beyond the wall.
+  Save as `art/images/painterly/hooks/asylum.jpg`
+- **Style B.** A gothic tarot card composition: a barred cell window and an ajar door rendered as flat symmetrical shapes, a frost-covered garden plot beyond, deep black background, silver/slate linework.
+  Save as `art/images/tarot/hooks/asylum.jpg`
+
+### The Soprano’s Final Curtain
+- **Style A.** The interior of a grand, empty opera house after the curtain has fallen, a single spotlight still burning on an empty stage, a dropped fan or glove visible in the wings.
+  Save as `art/images/painterly/hooks/opera.jpg`
+- **Style B.** A gothic tarot card composition: an empty stage under a single spotlight rendered as a radiant halo, a dropped glove at its edge, deep black background, gold/oxblood linework.
+  Save as `art/images/tarot/hooks/opera.jpg`
+
+### The Christmas Poisoning
+- **Style A.** A grand dining table set for twelve, holly and candles down its length, one place setting conspicuously undisturbed, its chair pushed back, firelight and cold blue window-light mixing.
+  Save as `art/images/painterly/hooks/yuletide.jpg`
+- **Style B.** A gothic tarot card composition: a long table set symmetrically with twelve place-settings, one chair pushed back and empty, holly-motif border, deep black background, oxblood/gold linework.
+  Save as `art/images/tarot/hooks/yuletide.jpg`
+
+### The Duel That Wasn’t Fought
+- **Style A.** A misty dueling ground at dawn, two long shadows cast toward each other across frosted grass, a single dropped pistol visible in the foreground, cold pale light breaking through fog.
+  Save as `art/images/painterly/hooks/duel.jpg`
+- **Style B.** A gothic tarot card composition: two long shadows meeting across a flat frosted field, a dropped pistol rendered as a small icon between them, deep black background, silver/oxblood linework.
+  Save as `art/images/tarot/hooks/duel.jpg`
+
+### The Bride Who Never Arrived
+- **Style A.** The dim stone stairway descending from a church nave into its crypt, a trail of white gown-lace visible on the steps, distant organ-lit doorway glowing warm above.
+  Save as `art/images/painterly/hooks/bride.jpg`
+- **Style B.** A gothic tarot card composition: a stairway descending into darkness rendered as flat receding steps, a trail of lace draped across them, a warm doorway glow above, deep black background, gold/teal linework.
+  Save as `art/images/tarot/hooks/bride.jpg`
+
+### The Keeper’s Drowned Light
+- **Style A.** A lone lighthouse on a rocky point at night, its lamp burning an unnatural pale colour against the storm-dark sky, waves crashing at its base, no figure visible in the lamp room.
+  Save as `art/images/painterly/hooks/lighthouse.jpg`
+- **Style B.** A gothic tarot card composition: a lighthouse tower rendered as a flat vertical beam of light against a dark sea, a crescent moon behind it, deep black background, silver/teal linework.
+  Save as `art/images/tarot/hooks/lighthouse.jpg`
+
+### The Workhouse Reckoning
+- **Style A.** A bleak workhouse stairwell, worn stone steps descending into shadow, a single small shoe left on one step, cold grey light from a high barred window.
+  Save as `art/images/painterly/hooks/workhouse.jpg`
+- **Style B.** A gothic tarot card composition: a stairwell rendered as flat descending steps, a single small shoe icon on one step, a barred-window motif above, deep black background, slate/gold linework.
+  Save as `art/images/tarot/hooks/workhouse.jpg`
+
+### The Death Beneath the Big Top
+- **Style A.** The inside of an empty big-top tent at night, a single aerial wire hanging slack from the rigging high above, sawdust ring below lit by one remaining lamp.
+  Save as `art/images/painterly/hooks/circus.jpg`
+- **Style B.** A gothic tarot card composition: a slack wire hanging from a flat rigging shape above an empty ring, a single lamp glow, deep black background, gold/oxblood linework.
+  Save as `art/images/tarot/hooks/circus.jpg`
+
 ---
 
-## 3. Omens (64 images — small square vignettes, ×2 styles)
+## 3. Omens (88 images — small square vignettes, ×2 styles)
 
 These render small (icon-scale) in both the Omen Row and the Gallery, so
 keep each to one clear, uncluttered subject. Square (1:1).
@@ -276,13 +400,25 @@ keep each to one clear, uncluttered subject. Square (1:1).
 | ↺ | A Music Box, Wound Backward | An ornate music box, lid open, its little dancer figure frozen mid-turn under dim light. | A flat gothic-tarot icon of an open music box with a frozen dancer figure, a crescent moon motif, gold linework on a deep black background. | `a-music-box-wound-backward` |
 | ⚜ | The Family Signet, Melted Down | A lump of melted gold on a jeweler’s cloth, a fragment of an heraldic crest still legible in the metal. | A flat gothic-tarot icon of a melted gold lump with a faint crest fragment, a star motif, brass linework on a deep black background. | `the-family-signet-melted-down` |
 | ✙ | A Widow’s Veil, Bought Too Soon | A black mourning veil laid across a dressmaker’s counter, still folded in its tissue wrapping. | A flat gothic-tarot icon of a folded black veil, a crescent moon motif, silver linework on a deep black background. | `a-widows-veil-bought-too-soon` |
+| ⚗ | An Alembic, Still Warm | A glass alembic still faintly warm to the touch, resting on a stained workbench, a single drop clinging to its spout. | A flat gothic-tarot icon of a glass alembic with a single droplet at its spout, a star motif, silver linework on a deep black background. | `an-alembic-still-warm` |
+| ✎ | A Diary Entry, Torn Free | A loose diary page torn along its binding, handwriting trailing off mid-sentence, ink smudged as if closed too soon. | A flat gothic-tarot icon of a torn diary page with trailing handwriting, a star motif, gold linework on a deep black background. | `a-diary-entry-torn-free` |
+| ⌛ | An Hourglass, Running Backward | An ornate hourglass with sand visibly rising against gravity into its upper chamber, brass fittings catching low light. | A flat gothic-tarot icon of an hourglass with sand rising upward, a crescent moon motif, silver linework on a deep black background. | `an-hourglass-running-backward` |
+| ⚱ | A Funerary Urn, Too Light | A carved stone funerary urn held aloft in one hand, its lightness suggested by the ease of the grip, dust motes catching candlelight. | A flat gothic-tarot icon of a funerary urn, a star motif, brass linework on a deep black background. | `a-funerary-urn-too-light` |
+| ☄ | A Falling Star, Witnessed by Three | A streak of falling light captured mid-fall over a dark treeline, three distant silhouetted figures pointing in three different directions. | A flat gothic-tarot icon of a falling star trailing light, a star motif, silver linework on a deep black background. | `a-falling-star-witnessed-by-three` |
+| ✾ | A Black Orchid, Hand-Delivered | A single black orchid resting on a doorstep, thorned stem deliberately left intact, no card in sight. | A flat gothic-tarot icon of a black orchid with visible thorns, a star motif, gold linework on a deep black background. | `a-black-orchid-hand-delivered` |
+| ❉ | A Firework That Would Not Finish | A firework frozen mid-burst against a night sky, its light lingering unnaturally long, faint trails still falling. | A flat gothic-tarot icon of a firework burst rendered as flat radiating lines, a star motif, gold linework on a deep black background. | `a-firework-that-would-not-finish` |
+| ⚖ | A Set of Scales, One Side Empty | An old brass set of scales, one pan weighted with a small dark object, the other conspicuously empty and still swinging. | A flat gothic-tarot icon of a set of scales with one pan empty, a star motif, brass linework on a deep black background. | `a-set-of-scales-one-side-empty` |
+| ☨ | A Grave Marker, Name Filed Off | A weathered gravestone with its inscription filed smooth, only a faint ghost of letter-shapes remaining in the stone. | A flat gothic-tarot icon of a gravestone with a blank smoothed face, a crescent moon motif, silver linework on a deep black background. | `a-grave-marker-name-filed-off` |
+| ⛧ | A Circle, Salted and Broken | A ring of salt on a wooden floor, broken at one point by a deliberate sweep, candle stubs at its edge. | A flat gothic-tarot icon of a broken salt circle, a star motif, silver linework on a deep black background. | `a-circle-salted-and-broken` |
+| ⚚ | A Physician’s Cane, Silver-Topped | A silver-topped physician’s cane leaning against a chair, its hollow shaft slightly ajar at the head, revealing a dark cavity. | A flat gothic-tarot icon of a silver-topped cane with a hollow revealed at its head, a star motif, silver linework on a deep black background. | `a-physicians-cane-silver-topped` |
+| ✵ | A Star Chart, One Star Added by Hand | An antique printed star chart with one additional star added in hand-inked pencil, unlike any printed constellation around it. | A flat gothic-tarot icon of a star chart with one hand-drawn star among printed ones, a star motif, gold linework on a deep black background. | `a-star-chart-one-star-added-by-hand` |
 
 Save Style A as `art/images/painterly/omens/<slug>.jpg` and Style B as
 `art/images/tarot/omens/<slug>.jpg`, using the slug from the table above.
 
 ---
 
-## 4. Victims (8 images — one per hook, ×2 styles)
+## 4. Victims (24 images — one per hook, ×2 styles)
 
 The Victim's *name and specific facts* are invented live at the table each
 session, so their face can't be pre-illustrated — instead, generate one
@@ -313,6 +449,54 @@ image regardless of what players later establish. Portrait orientation.
 - **Style B.** A gothic tarot card figure, back turned, standing at a river's edge in a pale gown, the hem dissolving into flat black water, a crescent moon halo, deep black background, teal/gold linework, faceless.
   Save as `art/images/tarot/victims/debutante.jpg`
 
+### The Cell That Was Never Opened — Victim
+- **Style A.** A patient's figure in a plain asylum shift, seen from behind, standing motionless in a frost-covered garden at night, the asylum's barred windows glowing faintly behind them.
+  Save as `art/images/painterly/victims/asylum.jpg`
+- **Style B.** A gothic tarot card figure, back turned, standing in a frost-covered garden in a plain shift, barred windows glowing behind them like a halo, deep black background, silver/slate linework, faceless.
+  Save as `art/images/tarot/victims/asylum.jpg`
+
+### The Soprano’s Final Curtain — Victim
+- **Style A.** A soprano’s figure in an elaborate costume, seen from behind, standing centre-stage under a single spotlight, the empty auditorium dark beyond the footlights.
+  Save as `art/images/painterly/victims/opera.jpg`
+- **Style B.** A gothic tarot card figure, back turned, standing centre-stage under a flat radiant spotlight halo, an empty auditorium rendered as darkness beyond, deep black background, gold/oxblood linework, faceless.
+  Save as `art/images/tarot/victims/opera.jpg`
+
+### The Christmas Poisoning — Victim
+- **Style A.** A seated figure in formal Christmas dinner attire, seen from behind at the head of a candlelit table, a place setting undisturbed before them, holly and candlelight around.
+  Save as `art/images/painterly/victims/yuletide.jpg`
+- **Style B.** A gothic tarot card figure, back turned, seated at the head of a flat symmetrical table, a holly-motif halo, deep black background, oxblood/gold linework, faceless.
+  Save as `art/images/tarot/victims/yuletide.jpg`
+
+### The Duel That Wasn’t Fought — Victim
+- **Style A.** A gentleman’s figure in formal dueling dress, seen from behind, standing alone on a frosted field at dawn, a dropped pistol at his feet, mist rising around him.
+  Save as `art/images/painterly/victims/duel.jpg`
+- **Style B.** A gothic tarot card figure, back turned, standing on a flat frosted field, a dropped pistol icon at their feet, deep black background, silver/oxblood linework, faceless.
+  Save as `art/images/tarot/victims/duel.jpg`
+
+### The Bride Who Never Arrived — Victim
+- **Style A.** A bride’s figure in a full wedding gown, seen from behind, descending a dim stone stairway into a crypt, her veil trailing up the steps behind her.
+  Save as `art/images/painterly/victims/bride.jpg`
+- **Style B.** A gothic tarot card figure, back turned, descending flat stone steps in a wedding gown, veil trailing upward like a comet, deep black background, gold/teal linework, faceless.
+  Save as `art/images/tarot/victims/bride.jpg`
+
+### The Keeper’s Drowned Light — Victim
+- **Style A.** A lighthouse keeper’s figure in oilskins, seen from behind, standing at the top of a spiral stair looking out into a storm-dark sea through the lamp-room glass.
+  Save as `art/images/painterly/victims/lighthouse.jpg`
+- **Style B.** A gothic tarot card figure, back turned, standing before a flat radiant lighthouse-lamp halo, a storm-dark sea beyond, deep black background, silver/teal linework, faceless.
+  Save as `art/images/tarot/victims/lighthouse.jpg`
+
+### The Workhouse Reckoning — Victim
+- **Style A.** A child’s small figure in workhouse grey, seen from behind, standing at the top of a worn stone stairwell, one hand on the railing, cold light from above.
+  Save as `art/images/painterly/victims/workhouse.jpg`
+- **Style B.** A gothic tarot card figure, back turned, small in scale, standing at the top of flat descending steps, a barred-window halo above, deep black background, slate/gold linework, faceless.
+  Save as `art/images/tarot/victims/workhouse.jpg`
+
+### The Death Beneath the Big Top — Victim
+- **Style A.** An aerialist’s figure in spangled costume, seen from behind, standing on a high platform looking out across an empty big top, the slack wire visible below.
+  Save as `art/images/painterly/victims/circus.jpg`
+- **Style B.** A gothic tarot card figure, back turned, standing on a flat high platform, a slack wire rendered as a falling line below them, deep black background, gold/oxblood linework, faceless.
+  Save as `art/images/tarot/victims/circus.jpg`
+
 ---
 
 ## Notes on generating
@@ -326,4 +510,4 @@ image regardless of what players later establish. Portrait orientation.
   actual corpse), that's a style-block failure, not a prompt failure —
   reinforce the "unsettling but not gory" / "no literal card frame" line
   and re-roll rather than editing the specific prompt.
-- 120 total images across both styles (60 per style: 20 Archetype sides + 4 Hooks + 32 Omens + 4 Victims). You don't have to generate all of them at once — the Gallery and the in-game cards work fine with partial art; anything missing just shows the text placeholder.
+- 200 total images across both styles (100 per style: 32 Archetype sides + 12 Hooks + 44 Omens + 12 Victims). You don't have to generate all of them at once — the Gallery and the in-game cards work fine with partial art; anything missing just shows the text placeholder.

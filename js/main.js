@@ -2,7 +2,7 @@
    onclick/oninput/onchange attributes in index.html onto window — ES
    modules are not global scope, so this is the one place that bridges
    the two. Everything else stays module-scoped. */
-import { show } from './ui/screens.js';
+import { show, closeOverlay, initHistoryNav } from './ui/screens.js';
 import { flipArchCard } from './ui/cards.js';
 import { showIdleClicker, idleClick } from './ui/idle.js';
 import { showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail,
@@ -15,7 +15,7 @@ import { startSceneFor, pickSceneCard, pickArch, beginScene, pickContrib,
          setContribHow, setSceneHappened } from './ui/scene.js';
 import { endScene, applyResolve, toggleSecretOmen, confirmSecret } from './ui/resolve.js';
 import { viewChronicle, returnFromChronicle, toggleStrike, showRules,
-         closeOverlay, initOverlayDismiss } from './ui/renderChronicle.js';
+         initOverlayDismiss } from './ui/renderChronicle.js';
 import { copyChronicle, downloadChronicle } from './chronicle/markdown.js';
 import { ensureSignedIn } from './sync/auth.js';
 import {
@@ -53,6 +53,7 @@ Object.assign(window, {
 renderHooks();
 renderPlayerInputs();
 initOverlayDismiss();
+initHistoryNav();
 ensureSignedIn()
   .then(() => tryAutoRejoin())
   .catch(err => console.warn('[sync] anonymous sign-in failed', err));

@@ -1,4 +1,5 @@
 import { $ } from '../engine/utils.js';
+import { openOverlay } from './screens.js';
 
 /* A pure distraction, deliberately disconnected from game state — no
    sync, no scoring that matters, nothing here should ever gate or
@@ -38,7 +39,7 @@ function currentMilestoneText(count){
 
 export function showIdleClicker(){
   renderIdlePanel();
-  $('overlay').style.display='block';
+  openOverlay();
 }
 
 function renderIdlePanel(){

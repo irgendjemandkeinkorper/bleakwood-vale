@@ -2,11 +2,12 @@ import { $, esc, ACT_NAMES } from '../engine/utils.js';
 import { EPILOGUE_QUESTIONS } from '../data/index.js';
 import { State } from '../engine/state.js';
 import { faceUp } from '../engine/rules.js';
+import { openOverlay } from '../ui/screens.js';
 
 export function buildMarkdown(){
   const G = State.G;
   const L = [];
-  L.push('# THE BLACKWOOD VALE CHRONICLE');
+  L.push('# THE BLEAKWOOD VALE CHRONICLE');
   L.push(`## ${G.hook.title}`);
   L.push(`*Being a true & faithful account of the death of **${G.victim.name}**.*`, '');
   L.push('### Concerning the Victim');
@@ -39,7 +40,7 @@ export function buildMarkdown(){
     L.push('', '## Questions for the Survivors');
     EPILOGUE_QUESTIONS.forEach(q=>L.push(`- ${q}`));
   }
-  L.push('', '---', '*Played in Blackwood Vale — a gothic re-imagining after the design of Tall Pines by Miles Gaborit.*');
+  L.push('', '---', '*Played in Bleakwood Vale — a gothic re-imagining after the design of Tall Pines by Miles Gaborit.*');
   return L.join('\n');
 }
 export function copyChronicle(){
@@ -55,14 +56,14 @@ export function fallbackCopy(md){
     <p class="small muted">Select all and copy:</p>
     <textarea style="min-height:340px" id="fallback-md">${esc(md)}</textarea>
     <div class="btnrow"><button onclick="closeOverlay()">Close</button></div>`;
-  $('overlay').style.display='block';
+  openOverlay();
   const t=$('fallback-md'); t.focus(); t.select();
 }
 export function downloadChronicle(){
   const blob = new Blob([buildMarkdown()], {type:'text/markdown'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'blackwood-vale-chronicle.md';
+  a.download = 'bleakwood-vale-chronicle.md';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
 }

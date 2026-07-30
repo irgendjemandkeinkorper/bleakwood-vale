@@ -1,4 +1,4 @@
-// Firebase project config for Blackwood Vale. Safe to commit — this is a
+// Firebase project config for Bleakwood Vale. Safe to commit — this is a
 // client-side identifier, not a secret. Access control lives entirely in
 // firestore.rules (see repo root), not in hiding this key.
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional.

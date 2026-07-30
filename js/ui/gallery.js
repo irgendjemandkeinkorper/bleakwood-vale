@@ -1,5 +1,6 @@
 import { $, esc, slugify } from '../engine/utils.js';
 import { ARCHETYPES, HOOKS, OMENS } from '../data/index.js';
+import { openOverlay } from './screens.js';
 
 /* The card-art Gallery — a pure browsing surface, deliberately independent
    of any game in progress (uses the static data tables, not State.G), so
@@ -68,7 +69,7 @@ function tileHTML(t){
 export function showGallery(){
   gState.detail = null;
   renderGallery();
-  $('overlay').style.display='block';
+  openOverlay();
 }
 function renderGallery(){
   if(gState.detail){ $('overlay-content').innerHTML = detailHTML(); return; }
@@ -76,7 +77,7 @@ function renderGallery(){
   const tiles = active.build(gState.style);
   $('overlay-content').innerHTML = `
     <h2 style="color:var(--gold)">The Gallery</h2>
-    <p class="small muted">Card art for Blackwood Vale — something to look through while the others plot. Anything missing just shows a plain card; drop generated images into <code>art/images/</code> (see <code>art/IMAGE_PROMPTS.md</code> for the exact paths) and they'll appear here automatically.</p>
+    <p class="small muted">Card art for Bleakwood Vale — something to look through while the others plot. Anything missing just shows a plain card; drop generated images into <code>art/images/</code> (see <code>art/IMAGE_PROMPTS.md</code> for the exact paths) and they'll appear here automatically.</p>
     <div class="btnrow" style="margin-top:12px">
       <button class="${gState.style==='painterly'?'primary':'ghost'}" onclick="setGalleryStyle('painterly')">Painterly Gothic</button>
       <button class="${gState.style==='tarot'?'primary':'ghost'}" onclick="setGalleryStyle('tarot')">Tarot Gothic</button>

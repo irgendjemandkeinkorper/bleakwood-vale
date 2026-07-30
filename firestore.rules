@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Fog-of-war schema for Blackwood Vale remote multiplayer:
+// Fog-of-war schema for Bleakwood Vale remote multiplayer:
 //   rooms/{roomCode}                 – public game state, readable by any
 //                                      signed-in (anonymous) participant.
 //                                      `seats` is a MAP KEYED BY UID (not an
