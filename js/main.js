@@ -5,6 +5,8 @@
 import { show } from './ui/screens.js';
 import { flipArchCard } from './ui/cards.js';
 import { showIdleClicker, idleClick } from './ui/idle.js';
+import { showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail,
+         closeGalleryDetail, galleryImgError } from './ui/gallery.js';
 import { renderHooks, chooseHook, renderPlayerInputs, confirmPlayers,
          beginArchSetup, saveArchSetup, finishVictim } from './ui/setup.js';
 import { renderHub, tradeOmen, forfeitScene, beginClose } from './ui/hub.js';
@@ -29,6 +31,7 @@ import {
 
 Object.assign(window, {
   show, flipArchCard, showIdleClicker, idleClick,
+  showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail, closeGalleryDetail, galleryImgError,
   chooseHook, renderPlayerInputs, confirmPlayers, beginArchSetup, saveArchSetup, finishVictim,
   renderHub, tradeOmen, forfeitScene, beginClose,
   startSceneFor, pickSceneCard, pickArch, beginScene, pickContrib, pickContribScene, pickContribOmen,
