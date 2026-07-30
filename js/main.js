@@ -13,6 +13,7 @@ import { endScene, applyResolve, toggleSecretOmen, confirmSecret } from './ui/re
 import { viewChronicle, returnFromChronicle, toggleStrike, showRules,
          closeOverlay, initOverlayDismiss } from './ui/renderChronicle.js';
 import { copyChronicle, downloadChronicle } from './chronicle/markdown.js';
+import { ensureSignedIn } from './sync/auth.js';
 
 Object.assign(window, {
   show, chooseHook, renderPlayerInputs, confirmPlayers, beginArchSetup, saveArchSetup, finishVictim,
@@ -28,3 +29,4 @@ Object.assign(window, {
 renderHooks();
 renderPlayerInputs();
 initOverlayDismiss();
+ensureSignedIn().catch(err => console.warn('[sync] anonymous sign-in failed', err));
