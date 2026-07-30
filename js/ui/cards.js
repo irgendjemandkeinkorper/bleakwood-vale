@@ -1,16 +1,34 @@
 import { esc, nl2br, toneBadge, ACT_NAMES } from '../engine/utils.js';
-import { faceUp } from '../engine/rules.js';
 import { State } from '../engine/state.js';
 
-export function archCard(a, selectable, idx){
-  const s = faceUp(a);
-  return `<div class="arch${a.flipped?' flipped':''}${selectable?' selectable':''}" ${selectable?`onclick="${selectable}(${idx})" id="arch-pick-${idx}"`:''}>
-    <div class="a-side">SIDE ${a.flipped?'II':'I'}${a.flipped?' — TURNED':''}</div>
+function archFaceHTML(a, sideIdx, turned){
+  const s = a.sides[sideIdx];
+  return `<div class="arch${turned?' flipped':''}">
+    <div class="a-side">SIDE ${sideIdx===0?'I':'II'}${turned?' — TURNED':''}</div>
     <div class="a-name">${esc(a.name||a.role)}</div>
     <div class="a-role">${esc(a.role)}</div>
     <div class="a-cond">${esc(s.cond)} <span style="white-space:nowrap">→ flip.</span></div>
     <div style="margin-top:5px">${toneBadge(s.tone)}</div>
   </div>`;
+}
+/* Archetypes are the only two-sided cards — every side has real,
+   different content (a different flip condition and Tone). The card
+   shows whichever side is currently face-up per game state (the
+   "front"), but a small flip control lets a player peek at the other
+   side at any time without affecting play — a pure local DOM/CSS
+   toggle (see flipArchCard below), not game state. */
+export function archCard(a, selectable, idx){
+  const frontIdx = a.flipped?1:0, backIdx = a.flipped?0:1;
+  return `<div class="arch-flip${selectable?' selectable':''}" ${selectable?`onclick="${selectable}(${idx})" id="arch-pick-${idx}"`:''}>
+    <button class="flip-btn" type="button" onclick="event.stopPropagation();flipArchCard(this)" aria-label="Peek at the other side" title="Peek at the other side">⟳</button>
+    <div class="arch-flip-inner">
+      <div class="arch-face arch-front">${archFaceHTML(a, frontIdx, a.flipped)}</div>
+      <div class="arch-face arch-back">${archFaceHTML(a, backIdx, !a.flipped)}</div>
+    </div>
+  </div>`;
+}
+export function flipArchCard(btn){
+  btn.closest('.arch-flip')?.classList.toggle('peeking');
 }
 export function omenCard(o, selectable, idx){
   return `<div class="card omen${selectable?' selectable':''}" ${selectable?`onclick="${selectable}(${idx})" id="omen-pick-${idx}"`:''}>

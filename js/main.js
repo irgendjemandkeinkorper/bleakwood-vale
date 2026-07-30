@@ -3,6 +3,7 @@
    modules are not global scope, so this is the one place that bridges
    the two. Everything else stays module-scoped. */
 import { show } from './ui/screens.js';
+import { flipArchCard } from './ui/cards.js';
 import { renderHooks, chooseHook, renderPlayerInputs, confirmPlayers,
          beginArchSetup, saveArchSetup, finishVictim } from './ui/setup.js';
 import { renderHub, tradeOmen, forfeitScene, beginClose } from './ui/hub.js';
@@ -26,7 +27,8 @@ import {
 } from './ui/online.js';
 
 Object.assign(window, {
-  show, chooseHook, renderPlayerInputs, confirmPlayers, beginArchSetup, saveArchSetup, finishVictim,
+  show, flipArchCard,
+  chooseHook, renderPlayerInputs, confirmPlayers, beginArchSetup, saveArchSetup, finishVictim,
   renderHub, tradeOmen, forfeitScene, beginClose,
   startSceneFor, pickSceneCard, pickArch, beginScene, pickContrib, pickContribScene, pickContribOmen,
   confirmContrib, cancelContrib, setContribHow, setSceneHappened,

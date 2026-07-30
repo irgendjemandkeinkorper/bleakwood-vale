@@ -160,19 +160,37 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
 .tone.Dread{background:var(--tone-dread)}
 .tone.count{min-width:34px;text-align:center}
 
-/* ---------- archetype roster ---------- */
+/* ---------- archetype roster (two-sided, flippable) ---------- */
 .arch{
   border:1px solid rgba(176,141,63,.4);padding:10px 12px;border-radius:2px;
   background:linear-gradient(180deg, rgba(38,30,18,.6), rgba(20,16,10,.7));
+  height:100%;box-sizing:border-box;transition:border-color .15s ease, box-shadow .15s ease;
 }
 .arch .a-name{font-family:'IM Fell English SC',serif;color:#eddfba;font-size:1.02rem}
 .arch .a-role{color:var(--gold);font-size:.85rem}
 .arch .a-cond{font-size:.85rem;color:#c9bc9c;margin-top:4px}
 .arch .a-side{font-size:.7rem;color:#8a7c5f;letter-spacing:.1em}
 .arch.flipped{border-color:var(--blood-bright)}
-.arch.selectable{cursor:pointer}
-.arch.selectable:hover{border-color:var(--gold);box-shadow:0 0 10px rgba(176,141,63,.2)}
-.arch.selected{border-color:var(--blood-bright);box-shadow:0 0 0 1px var(--blood-bright)}
+
+.arch-flip{position:relative;perspective:1200px}
+.arch-flip.selectable{cursor:pointer}
+.arch-flip.selectable:hover .arch{border-color:var(--gold);box-shadow:0 0 10px rgba(176,141,63,.2)}
+.arch-flip.selected .arch{border-color:var(--blood-bright);box-shadow:0 0 0 1px var(--blood-bright)}
+.arch-flip-inner{
+  position:relative;min-height:126px;
+  transform-style:preserve-3d;
+  transition:transform .6s cubic-bezier(.4,.1,.2,1);
+}
+.arch-flip.peeking .arch-flip-inner{transform:rotateY(180deg)}
+.arch-face{position:absolute;inset:0;backface-visibility:hidden}
+.arch-face.arch-back{transform:rotateY(180deg)}
+.flip-btn{
+  position:absolute;top:6px;right:6px;z-index:3;
+  width:24px;height:24px;padding:0;border-radius:50%;
+  background:rgba(6,9,8,.6);border:1px solid rgba(176,141,63,.5);color:var(--gold);
+  font-size:.85rem;line-height:1;cursor:pointer;letter-spacing:0;
+}
+.flip-btn:hover{border-color:var(--gold);color:#f4ead0;box-shadow:0 0 8px rgba(176,141,63,.3)}
 
 /* ---------- hook cards ---------- */
 .hookcard{
