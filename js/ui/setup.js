@@ -1,0 +1,127 @@
+import { $, esc, shuffle, ROMAN, toneBadge } from '../engine/utils.js';
+import { HOOKS, ARCHETYPES, SECRETS, OMENS, ACT_CLOSES } from '../data/index.js';
+import { State } from '../engine/state.js';
+import { show } from './screens.js';
+import { startAct } from './hub.js';
+
+/* ---------------- setup: hooks ---------------- */
+export function renderHooks(){
+  $('hook-list').innerHTML = HOOKS.map((h,i)=>`
+    <div class="hookcard" onclick="chooseHook(${i})">
+      <div class="sc" style="color:var(--blood-bright);font-size:.75rem;letter-spacing:.25em">INCIDENT ${ROMAN[i+1]}</div>
+      <h3>${h.title}</h3>
+      <div class="h-epi">${h.epigraph}</div>
+      <hr class="rule">
+      <div class="small" style="color:#cfc2a2;font-style:italic">${h.victimLine}</div>
+    </div>`).join('');
+}
+export function chooseHook(i){ State.pendingHook = HOOKS[i]; show('scr-players'); renderPlayerInputs(); }
+
+/* ---------------- setup: players ---------------- */
+export function renderPlayerInputs(){
+  const n = +$('pl-count').value;
+  let html='';
+  for(let i=0;i<n;i++){
+    html += `<label class="fld">Storyteller ${ROMAN[i+1]}</label>
+             <input type="text" id="pl-name-${i}" placeholder="Name (optional)">`;
+  }
+  $('pl-names').innerHTML = html;
+  $('pl-note').textContent =
+    n===1 ? 'Solo mode: you will voice every archetype, play three scenes per act, and carry two Hidden Sins.' :
+    n===2 ? 'Two storytellers: each of you begins two scenes per act.' :
+    'Each storyteller begins one scene per act. Archetypes belong to no one — pass them freely.';
+}
+export function confirmPlayers(){
+  const n = +$('pl-count').value;
+  const players=[];
+  for(let i=0;i<n;i++){
+    const v = ($('pl-name-'+i).value||'').trim();
+    players.push({name: v || `Storyteller ${ROMAN[i+1]}`, hand:[], omens:[], secrets:[], scenesLeft:0});
+  }
+  State.G = {
+    hook: State.pendingHook, players, act:0,
+    archetypes: shuffle(ARCHETYPES).slice(0,6).map(a=>({...a, name:'', setupA:'', answeredBy:'', flipped:false})),
+    victim:{name:'', facts:[]},
+    sceneDeck:[], discardTones:[], omenDeck:[], omenRow:[],
+    actClose:{1:shuffle(ACT_CLOSES[1])[0], 2:shuffle(ACT_CLOSES[2])[0], 3:shuffle(ACT_CLOSES[3])[0]},
+    journal:[], current:null, archIdx:0, firstScenePlayer:null, closeDone:false
+  };
+  const G = State.G;
+  $('intro-text').innerHTML = G.hook.intro;
+  show('scr-intro');
+}
+
+/* ---------------- setup: archetypes ---------------- */
+export function beginArchSetup(){ State.G.archIdx=0; renderArchSetup(); show('scr-archsetup'); }
+export function renderArchSetup(){
+  const G = State.G;
+  const i = G.archIdx, a = G.archetypes[i];
+  const answerer = G.players[i % G.players.length];
+  $('scr-archsetup').innerHTML = `
+    <p class="center muted sc" style="letter-spacing:.2em">ESTABLISHING THE DEAD — QUESTION ${ROMAN[i+1]} OF VI</p>
+    <div class="ornament">❦</div>
+    <div style="max-width:640px;margin:0 auto">
+      <div class="card">
+        <div class="c-kicker">Archetype</div>
+        <div class="c-title" style="font-size:1.5rem">${a.role}</div>
+        <div class="c-prompt">${a.flavor}</div>
+        <hr class="rule" style="border-color:rgba(60,45,25,.3)">
+        <div style="font-style:italic;font-size:1.05rem">“${a.setup[G.hook.id]}”</div>
+        <div class="small" style="margin-top:8px;color:var(--blood)">${toneBadge(a.sides[0].tone)} <span style="color:var(--ink-soft)">— ${esc(a.sides[0].cond)} flip this card.</span></div>
+      </div>
+      <div class="panel">
+        <p class="small muted" style="font-style:italic">${esc(answerer.name)} answers — in character, or plainly. The answer becomes a fact about the Victim and about this archetype.</p>
+        <label class="fld">Name this archetype</label>
+        <input type="text" id="arch-name" placeholder="e.g. Dr. Ambrose Vane">
+        <label class="fld">The answer</label>
+        <textarea id="arch-answer" placeholder="What is established…"></textarea>
+        <div class="btnrow">
+          <button class="primary" onclick="saveArchSetup()">${i<5?'Next Question':'To the Victim'}</button>
+        </div>
+      </div>
+    </div>`;
+}
+export function saveArchSetup(){
+  const G = State.G;
+  const a = G.archetypes[G.archIdx];
+  a.name = ($('arch-name').value||'').trim() || a.role;
+  a.setupA = ($('arch-answer').value||'').trim() || '(left unspoken)';
+  a.answeredBy = G.players[G.archIdx % G.players.length].name;
+  G.victim.facts.push({role:a.role, who:a.name, q:a.setup[G.hook.id], a:a.setupA});
+  G.archIdx++;
+  if(G.archIdx<6){ renderArchSetup(); window.scrollTo(0,0); }
+  else renderVictim();
+}
+
+/* ---------------- setup: victim ---------------- */
+export function renderVictim(){
+  const G = State.G;
+  $('scr-victim').innerHTML = `
+    <h2 class="center">The Victim</h2>
+    <p class="center muted" style="font-style:italic;max-width:640px;margin:6px auto">${G.hook.victimLine}</p>
+    <div class="ornament">❦</div>
+    <div style="max-width:680px;margin:0 auto">
+      <div class="panel tight">
+        ${G.victim.facts.map(f=>`<p class="small" style="margin:6px 0"><span style="color:var(--gold)">${esc(f.role)}:</span> <em>${esc(f.a)}</em></p>`).join('')}
+      </div>
+      <div class="panel">
+        <label class="fld">Together, name the deceased</label>
+        <input type="text" id="victim-name" placeholder="This is usually the hardest part.">
+        <div class="btnrow">
+          <button class="primary" onclick="finishVictim()">Deal the Cards</button>
+        </div>
+      </div>
+    </div>`;
+  show('scr-victim');
+}
+export function finishVictim(){
+  const G = State.G;
+  G.victim.name = ($('victim-name').value||'').trim() || 'The Nameless Dead';
+  // omens & secrets are dealt once, at the start
+  G.omenDeck = shuffle(OMENS);
+  G.omenRow = G.omenDeck.splice(0,6);
+  const secrets = shuffle(SECRETS);
+  G.players.forEach(p=>{ p.secrets=[{...secrets.pop(), used:false}]; });
+  if(G.players.length===1) G.players[0].secrets.push({...secrets.pop(), used:false});
+  startAct(1);
+}

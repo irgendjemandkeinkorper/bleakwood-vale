@@ -1,0 +1,27 @@
+/* Omen cards — the symbol deck. Interpreted freely: literally, metaphorically, or obliquely. */
+export const OMENS = [
+  {glyph:'☽', title:'A Tarnished Pocket Watch', line:'Stopped — and yet you can hear it ticking.'},
+  {glyph:'❧', title:'The Dead Songbird', line:'In its gilded cage, still warm.'},
+  {glyph:'❈', title:'A Key Without a Lock', line:'Old iron, warm to the touch.'},
+  {glyph:'❦', title:'The Black Dog', line:'Seen at crossings, and at certain doors.'},
+  {glyph:'✧', title:'A Mourning Brooch', line:'Woven from human hair. Not the deceased’s.'},
+  {glyph:'⁂', title:'The Extinguished Candle', line:'Its smoke rises against the draught.'},
+  {glyph:'☾', title:'A Child’s Caul', line:'Kept, sold, or stolen — sailors pay dearly for them.'},
+  {glyph:'▦', title:'The Mirror, Draped', line:'And the drape has slipped.'},
+  {glyph:'☿', title:'A Vial of Black Bile', line:'Shimmering. Medicinal. Wrong.'},
+  {glyph:'§', title:'The Hangman’s Rope', line:'Cut into lucky lengths and sold at the gate.'},
+  {glyph:'◌', title:'A Wedding Ring, Swallowed', line:'Found where it had no business being.'},
+  {glyph:'✻', title:'The Moth Swarm', line:'Drawn to a flame that gives no heat.'},
+  {glyph:'◈', title:'A Daguerreotype of the Dead', line:'Posed as if living. Eyes painted open.'},
+  {glyph:'♆', title:'The Cracked Church Bell', line:'It rings flat, but only on holy days.'},
+  {glyph:'✋', title:'A Left-Handed Glove', line:'Its partner was burned. Deliberately.'},
+  {glyph:'∞', title:'The Rat King', line:'Knotted, squirming — an omen of houses.'},
+  {glyph:'⚘', title:'A Sprig of Rue', line:'Worn against regret. Wilting fast.'},
+  {glyph:'❄', title:'The Frozen Rose', line:'Blooming out of season, rimed with frost.'},
+  {glyph:'✉', title:'A Letter Edged in Black', line:'The ink still wet after all these weeks.'},
+  {glyph:'☍', title:'The Second Shadow', line:'Cast by no second light.'},
+  {glyph:'☻', title:'A Doll with Real Teeth', line:'Somebody’s teeth.'},
+  {glyph:'⋯', title:'The Salt Line, Broken', line:'Scattered by a deliberate foot.'},
+  {glyph:'⚓', title:'A Ship in a Bottle', line:'Its little sails rigged in mourning-black.'},
+  {glyph:'☂', title:'The Weeping Wall', line:'The damp has made a face of it. The face is familiar.'}
+];
