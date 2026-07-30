@@ -2,7 +2,7 @@ import { $, esc, nl2br, toneBadge, ACT_NAMES, ROMAN } from '../engine/utils.js';
 import { HOOKS, TONES } from '../data/index.js';
 import { State } from '../engine/state.js';
 import { show } from './screens.js';
-import { archCard, omenCard, sceneCardHTML } from './cards.js';
+import { archCard, omenCard, sceneCardHTML, journalEntrySummaryHTML } from './cards.js';
 import { faceUp, maxContrib, actToneCounts } from '../engine/rules.js';
 import { renderChronicle } from './renderChronicle.js';
 import { createRoom, joinRoom, subscribeRoom, unsubscribeRoom, subscribeMyPrivate, unsubscribeMyPrivate } from '../sync/liveRoom.js';
@@ -283,6 +283,7 @@ function renderOnlineHub(room){
     <p class="center muted">${esc(room.hook.title)} · The Victim: ${esc(room.victim.name)}</p>
     <div class="ornament">✦ ❦ ✦</div>
     ${banner}
+    ${room.journal.length ? `<h3 style="color:var(--gold)">Last Scene</h3>${journalEntrySummaryHTML(room.journal[room.journal.length-1], {compact:true})}` : ''}
     <div class="panel tight">
       <h3 style="color:var(--gold)">The Table</h3>
       <p class="small muted">${remaining} scene${remaining===1?'':'s'} remain${remaining===1?'s':''} before the Act closes.</p>

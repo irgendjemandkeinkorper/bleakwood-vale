@@ -2,7 +2,7 @@ import { $, esc, shuffle, toneBadge, ACT_NAMES } from '../engine/utils.js';
 import { TONES, SCENES } from '../data/index.js';
 import { State } from '../engine/state.js';
 import { show, renderTopbar } from './screens.js';
-import { archCard, omenCard, playerPanel } from './cards.js';
+import { archCard, omenCard, playerPanel, journalEntrySummaryHTML } from './cards.js';
 import { actToneCounts } from '../engine/rules.js';
 import { renderScenePlay } from './scene.js';
 import { viewChronicle } from './renderChronicle.js';
@@ -33,6 +33,8 @@ export function renderHub(){
     <h2 class="center" style="margin-top:8px">${ACT_NAMES[G.act]}</h2>
     <p class="center muted">${esc(G.hook.title)} · The Victim: ${esc(G.victim.name)}</p>
     <div class="ornament">✦ ❦ ✦</div>
+
+    ${G.journal.length ? `<h3 style="color:var(--gold)">Last Scene</h3>${journalEntrySummaryHTML(G.journal[G.journal.length-1], {compact:true})}` : ''}
 
     <div class="panel tight">
       <h3 style="color:var(--gold)">The Table</h3>

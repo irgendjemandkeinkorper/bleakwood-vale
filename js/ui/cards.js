@@ -1,4 +1,4 @@
-import { esc, toneBadge, ACT_NAMES } from '../engine/utils.js';
+import { esc, nl2br, toneBadge, ACT_NAMES } from '../engine/utils.js';
 import { faceUp } from '../engine/rules.js';
 import { State } from '../engine/state.js';
 
@@ -29,6 +29,35 @@ export function sceneCardHTML(c, selectable, idx){
     <div style="margin-top:8px">${toneBadge(c.tone)}</div>
   </div>`;
 }
+/* Compact recap of one resolved journal entry — who led it, what was
+   played into it, and by whom. Shared by the hub's "last scene" panel
+   and (in fuller form) the Chronicle, so the two never drift apart. */
+export function journalEntrySummaryHTML(entry, opts){
+  const compact = opts?.compact;
+  if(!entry) return '';
+  if(entry.type==='note'){
+    return `<div class="panel tight"><span class="small muted">${esc(entry.text)}</span></div>`;
+  }
+  if(entry.type==='secret'){
+    return `<div class="panel tight" style="border-color:#8a63a8">
+      <h3 style="color:#c9b3de">${compact?'Just revealed — ':''}A Hidden Sin: ${esc(entry.playerName)}</h3>
+      <p class="small" style="color:#e0d4ec">“${esc(entry.question)}”</p>
+      <p class="small muted">Shown through: ${entry.omens.map(o=>`${o.glyph} ${esc(o.title)}`).join(' · ')}</p>
+    </div>`;
+  }
+  const contribHTML = entry.contributions.length
+    ? entry.contributions.map(x=>`<p class="small" style="margin:3px 0"><span style="color:var(--gold)">${x.kind==='omen'?(x.glyph+' '):''}${esc(x.title)}</span> <span class="muted">(${esc(x.playerName)})</span>${(!compact && x.how)?` — ${nl2br(x.how)}`:''}</p>`).join('')
+    : '<p class="small muted">No one else played into this scene.</p>';
+  return `<div class="panel tight">
+    <h3 style="color:var(--gold)">${entry.type==='close'?'Act Close — ':''}${esc(entry.cardTitle)}</h3>
+    <p class="small">Led by <strong>${esc(entry.playerName)}</strong> as ${esc(entry.archName)} (${esc(entry.archRole)})</p>
+    <p class="small" style="color:var(--gold);margin-top:6px">Cards &amp; characters played</p>
+    ${contribHTML}
+    <p class="small muted" style="margin-top:6px">Tones: ${entry.tones.map(toneBadge).join(' ')}</p>
+    ${entry.flips.length?`<p class="small muted">${entry.flips.map(esc).join('; ')}.</p>`:''}
+  </div>`;
+}
+
 export function playerPanel(p,i){
   const G = State.G;
   return `<div class="ppanel">
