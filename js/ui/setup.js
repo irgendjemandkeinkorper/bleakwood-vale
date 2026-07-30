@@ -12,7 +12,7 @@ export function renderHooks(){
       <h3>${h.title}</h3>
       <div class="h-epi">${h.epigraph}</div>
       <hr class="rule">
-      <div class="small" style="color:#cfc2a2;font-style:italic">${h.victimLine}</div>
+      <div class="small" style="color:#cfc2a2">${h.victimLine}</div>
     </div>`).join('');
 }
 export function chooseHook(i){ State.pendingHook = HOOKS[i]; show('scr-players'); renderPlayerInputs(); }
@@ -66,11 +66,11 @@ export function renderArchSetup(){
         <div class="c-title" style="font-size:1.5rem">${a.role}</div>
         <div class="c-prompt">${a.flavor}</div>
         <hr class="rule" style="border-color:rgba(60,45,25,.3)">
-        <div style="font-style:italic;font-size:1.05rem">“${a.setup[G.hook.id]}”</div>
+        <div style="font-size:1.05rem">“${a.setup[G.hook.id]}”</div>
         <div class="small" style="margin-top:8px;color:var(--blood)">${toneBadge(a.sides[0].tone)} <span style="color:var(--ink-soft)">— ${esc(a.sides[0].cond)} flip this card.</span></div>
       </div>
       <div class="panel">
-        <p class="small muted" style="font-style:italic">${esc(answerer.name)} answers — in character, or plainly. The answer becomes a fact about the Victim and about this archetype.</p>
+        <p class="small muted">${esc(answerer.name)} answers — in character, or plainly. The answer becomes a fact about the Victim and about this archetype.</p>
         <label class="fld">Name this archetype</label>
         <input type="text" id="arch-name" placeholder="e.g. Dr. Ambrose Vane">
         <label class="fld">The answer</label>
@@ -98,11 +98,11 @@ export function renderVictim(){
   const G = State.G;
   $('scr-victim').innerHTML = `
     <h2 class="center">The Victim</h2>
-    <p class="center muted" style="font-style:italic;max-width:640px;margin:6px auto">${G.hook.victimLine}</p>
+    <p class="center muted" style="max-width:640px;margin:6px auto">${G.hook.victimLine}</p>
     <div class="ornament">❦</div>
     <div style="max-width:680px;margin:0 auto">
       <div class="panel tight">
-        ${G.victim.facts.map(f=>`<p class="small" style="margin:6px 0"><span style="color:var(--gold)">${esc(f.role)}:</span> <em>${esc(f.a)}</em></p>`).join('')}
+        ${G.victim.facts.map(f=>`<p class="small" style="margin:6px 0"><span style="color:var(--gold)">${esc(f.role)}:</span> <span>${esc(f.a)}</span></p>`).join('')}
       </div>
       <div class="panel">
         <label class="fld">Together, name the deceased</label>

@@ -83,7 +83,7 @@ export function showOnlineEntry(){
   State.G = null;
   $('scr-online-entry').innerHTML = `
     <h2 class="center">Play Online</h2>
-    <p class="center muted" style="font-style:italic">Gather your table across separate screens. One person opens the tale; everyone else joins with the code.</p>
+    <p class="center muted">Gather your table across separate screens. One person opens the tale; everyone else joins with the code.</p>
     <div class="ornament">❦</div>
     <div class="pgrid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr));max-width:900px;margin:0 auto">
       <div class="panel">
@@ -193,7 +193,7 @@ function renderOnlineLobby(room){
     <h2 class="center">The Table Gathers</h2>
     <div class="ornament">❦</div>
     <div class="panel" style="max-width:640px;margin:0 auto">
-      <p class="small muted" style="font-style:italic">${esc(room.hook.title)}</p>
+      <p class="small muted">${esc(room.hook.title)}</p>
       <p class="center" style="margin:14px 0">
         <span class="sc" style="color:var(--gold);font-size:.85rem;letter-spacing:.15em">ROOM CODE</span><br>
         <span style="font-size:2.2rem;letter-spacing:.3em;color:#eddfba">${esc(State.onlineRoomCode)}</span>
@@ -229,18 +229,18 @@ function renderOnlineArchSetup(room){
         <div class="c-title" style="font-size:1.5rem">${a.role}</div>
         <div class="c-prompt">${a.flavor}</div>
         <hr class="rule" style="border-color:rgba(60,45,25,.3)">
-        <div style="font-style:italic;font-size:1.05rem">“${a.setup[room.hook.id]}”</div>
+        <div style="font-size:1.05rem">“${a.setup[room.hook.id]}”</div>
         <div class="small" style="margin-top:8px;color:var(--blood)">${toneBadge(a.sides[0].tone)} <span style="color:var(--ink-soft)">— ${esc(a.sides[0].cond)} flip this card.</span></div>
       </div>
       <div class="panel">
         ${isMe ? `
-          <p class="small muted" style="font-style:italic">Answer in character, or plainly. The answer becomes a fact about the Victim and about this archetype.</p>
+          <p class="small muted">Answer in character, or plainly. The answer becomes a fact about the Victim and about this archetype.</p>
           <label class="fld">Name this archetype</label>
           <input type="text" id="arch-name" placeholder="e.g. Dr. Ambrose Vane">
           <label class="fld">The answer</label>
           <textarea id="arch-answer" placeholder="What is established…"></textarea>
           <div class="btnrow"><button class="primary" onclick="onlineSaveArchSetup()">${i<5?'Next Question':'To the Victim'}</button></div>
-        ` : `<p class="small muted center" style="font-style:italic">Waiting on ${esc(answerer.name)} to answer…</p>`}
+        ` : `<p class="small muted center">Waiting on ${esc(answerer.name)} to answer…</p>`}
       </div>
     </div>`;
 }
@@ -255,11 +255,11 @@ export async function onlineSaveArchSetup(){
 function renderOnlineVictim(room){
   $('scr-victim').innerHTML = `
     <h2 class="center">The Victim</h2>
-    <p class="center muted" style="font-style:italic;max-width:640px;margin:6px auto">${room.hook.victimLine}</p>
+    <p class="center muted" style="max-width:640px;margin:6px auto">${room.hook.victimLine}</p>
     <div class="ornament">❦</div>
     <div style="max-width:680px;margin:0 auto">
       <div class="panel tight">
-        ${room.victim.facts.map(f=>`<p class="small" style="margin:6px 0"><span style="color:var(--gold)">${esc(f.role)}:</span> <em>${esc(f.a)}</em></p>`).join('')}
+        ${room.victim.facts.map(f=>`<p class="small" style="margin:6px 0"><span style="color:var(--gold)">${esc(f.role)}:</span> <span>${esc(f.a)}</span></p>`).join('')}
       </div>
       <div class="panel">
         <label class="fld">Together, name the deceased</label>
@@ -280,12 +280,12 @@ function renderOnlineHub(room){
   const banner = room.pendingSecret ? `<div class="notice">A Hidden Sin is being revealed at the table right now…</div>` : '';
   $('scr-hub').innerHTML = `
     <h2 class="center" style="margin-top:8px">${ACT_NAMES[room.act]}</h2>
-    <p class="center muted" style="font-style:italic">${esc(room.hook.title)} · The Victim: ${esc(room.victim.name)}</p>
+    <p class="center muted">${esc(room.hook.title)} · The Victim: ${esc(room.victim.name)}</p>
     <div class="ornament">✦ ❦ ✦</div>
     ${banner}
     <div class="panel tight">
       <h3 style="color:var(--gold)">The Table</h3>
-      <p class="small muted" style="font-style:italic">${remaining} scene${remaining===1?'':'s'} remain${remaining===1?'s':''} before the Act closes.</p>
+      <p class="small muted">${remaining} scene${remaining===1?'':'s'} remain${remaining===1?'s':''} before the Act closes.</p>
       <div class="btnrow">
         ${room.players.map((p,i)=>{
           const isMe = i===mySeat;
@@ -302,9 +302,9 @@ function renderOnlineHub(room){
     </div>
     <div class="panel tight">
       <h3 style="color:var(--blood-bright)">The Act Close — foreseen</h3>
-      <p><span class="sc" style="color:#eddfba">${esc(close.title)}.</span> <em class="muted small">${esc(close.cond)}</em></p>
-      <p class="small" style="font-style:italic;color:#cfc2a2">${esc(close.prompt)}</p>
-      <p class="small muted">${TONES.map(t=>`${toneBadge(t)} <em>${esc(close.elements[t])}</em>`).join('<br>')}</p>
+      <p><span class="sc" style="color:#eddfba">${esc(close.title)}.</span> <span class="muted small">${esc(close.cond)}</span></p>
+      <p class="small" style="color:#cfc2a2">${esc(close.prompt)}</p>
+      <p class="small muted">${TONES.map(t=>`${toneBadge(t)} <span>${esc(close.elements[t])}</span>`).join('<br>')}</p>
     </div>
     <h3 style="color:var(--gold);margin-top:18px">The Archetypes</h3>
     <div class="pgrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:8px">
@@ -316,7 +316,7 @@ function renderOnlineHub(room){
     <div class="pgrid" style="margin-top:8px">
       ${room.players.map((p,i)=>onlinePlayerPanel(p,i,i===mySeat,room)).join('')}
     </div>
-    <p class="small muted" style="margin-top:10px;font-style:italic">Scene deck: ${room.sceneDeck.length} card${room.sceneDeck.length===1?'':'s'} remaining · Omen deck: ${room.omenDeck.length}</p>`;
+    <p class="small muted" style="margin-top:10px">Scene deck: ${room.sceneDeck.length} card${room.sceneDeck.length===1?'':'s'} remaining · Omen deck: ${room.omenDeck.length}</p>`;
 }
 function onlinePlayerPanel(p, i, isMe, room){
   // Stage 4: hand/secrets are private. My own panel shows the real
@@ -328,16 +328,16 @@ function onlinePlayerPanel(p, i, isMe, room){
   // bypass Firestore if left in a panel that isn't mine.
   const handHTML = isMe
     ? (myPrivate.hand.map(c=>`<div class="minicard"><div class="mc-t">${esc(c.title)}</div><span class="tone ${c.tone}" style="font-size:.6rem">${c.tone}</span></div>`).join('')
-       || '<span class="small muted"><em>No scene cards in hand.</em></span>')
-    : `<span class="small muted"><em>${p.handCount} scene card${p.handCount===1?'':'s'} in hand.</em></span>`;
+       || '<span class="small muted"><span>No scene cards in hand.</span></span>')
+    : `<span class="small muted"><span>${p.handCount} scene card${p.handCount===1?'':'s'} in hand.</span></span>`;
   const secretsHTML = isMe
     ? myPrivate.secrets.map(s=>`
       <details class="secretbox"><summary>Hidden Sin ${s.used?'— revealed':'(yours alone to read)'}</summary>
         <div class="small" style="margin-top:6px">${s.combo.map(toneBadge).join(' ')}<br>
-        <em style="color:#c9b3de">${esc(s.q)}</em>
+        <span style="color:#c9b3de">${esc(s.q)}</span>
         ${s.used?'':'<br><span class="muted">Unlocks when a scene’s tones contain this combination.</span>'}</div>
       </details>`).join('')
-    : (p.secretsCount ? `<p class="small muted" style="font-style:italic">${p.unrevealedSecretsCount} unrevealed Hidden Sin${p.unrevealedSecretsCount===1?'':'s'}.</p>` : '');
+    : (p.secretsCount ? `<p class="small muted">${p.unrevealedSecretsCount} unrevealed Hidden Sin${p.unrevealedSecretsCount===1?'':'s'}.</p>` : '');
   return `<div class="ppanel">
     <h4>${esc(p.name)}${isMe?' (you)':''}</h4>
     <div class="handrow">${handHTML}</div>
@@ -376,10 +376,10 @@ function renderOnlineCloseIntro(room){
         <div class="c-prompt">${esc(close.prompt)}</div>
       </div>
       <div class="panel">
-        <p class="small" style="font-style:italic;color:var(--gold)">${esc(close.cond)}</p>
+        <p class="small" style="color:var(--gold)">${esc(close.cond)}</p>
         <p class="small muted">Tones this act: ${TONES.map(t=>`<span class="tone count ${t}">${counts[t]}</span>`).join(' ')}</p>
         ${tied.length===1
-          ? `<p><strong style="color:var(--blood-bright)">Dominant tone: ${toneBadge(tied[0])}</strong> — must <em>${esc(close.elements[tied[0]])}</em></p>`
+          ? `<p><strong style="color:var(--blood-bright)">Dominant tone: ${toneBadge(tied[0])}</strong> — must <span>${esc(close.elements[tied[0]])}</span></p>`
           : `<label class="fld">The tones are tied — choose the element</label>
              <select id="close-el">${tied.map(t=>`<option value="${t}">${t} — ${esc(close.elements[t])}</option>`).join('')}</select>`}
         <label class="fld">Who begins the close?</label>
@@ -464,7 +464,7 @@ function renderOnlineScene(room){
     <div class="chron-entry" style="margin:8px 0">
       <div class="ce-head"><span class="ce-title" style="font-size:.95rem">${x.kind==='omen'?x.card.glyph+' ':''}${esc(x.card.title)}</span>
       <span class="ce-meta">played by ${esc(room.players[x.pi].name)}${x.kind==='scene'?' · '+toneBadge(x.card.tone):' · omen'}</span></div>
-      <div class="small" style="font-style:italic;color:#cfc2a2">${nl2br(x.how)||'<span class="muted">…manifests wordlessly.</span>'}</div>
+      <div class="small" style="color:#cfc2a2">${nl2br(x.how)||'<span class="muted">…manifests wordlessly.</span>'}</div>
     </div>`).join('');
 
   let addingHTML = '';
@@ -473,7 +473,7 @@ function renderOnlineScene(room){
       addingHTML = `<div class="btnrow"><button class="ghost" onclick="onlineStartContrib()">Play a card into this scene</button></div>`;
     } else if(!draft.adding.pick){
       addingHTML = `
-        <p class="small" style="color:var(--gold);font-style:italic">Choose a scene card from your hand, or an omen from the row:</p>
+        <p class="small" style="color:var(--gold)">Choose a scene card from your hand, or an omen from the row:</p>
         ${myPrivate.hand.length?`<div class="cardgrid">${myPrivate.hand.map((sc,i)=>sceneCardHTML(sc,'onlinePickContribScene',i)).join('')}</div>`:''}
         ${room.omenRow.length?`<div class="cardgrid compact">${room.omenRow.map((o,i)=>omenCard(o,'onlinePickContribOmen',i)).join('')}</div>`:''}
         <button class="ghost" onclick="onlineCancelContrib()">Never mind</button>`;
@@ -507,19 +507,19 @@ function renderOnlineScene(room){
         <div class="c-title">${esc(c.card.title)}</div>
         <div class="c-prompt">${esc(c.card.prompt)}</div>
         ${c.card.tone?`<div style="margin-top:8px">${toneBadge(c.card.tone)}</div>`:''}
-        ${c.element?`<hr class="rule" style="border-color:rgba(60,45,25,.3)"><div class="small" style="color:var(--blood)"><strong>Include:</strong> <em>${esc(c.element)}</em></div>`:''}
+        ${c.element?`<hr class="rule" style="border-color:rgba(60,45,25,.3)"><div class="small" style="color:var(--blood)"><strong>Include:</strong> <span>${esc(c.element)}</span></div>`:''}
       </div>
       <div>${archCard(a)}
-        <p class="small muted" style="margin-top:6px;font-style:italic">Led by ${esc(p.name)}${iAmStarter?' (you)':''}.</p>
+        <p class="small muted" style="margin-top:6px">Led by ${esc(p.name)}${iAmStarter?' (you)':''}.</p>
       </div>
     </div>
-    ${c.opening?`<div class="panel tight"><span class="sc small" style="color:var(--gold)">THE CAMERA SEES</span><p style="font-style:italic;color:#e3d7b8">${nl2br(c.opening)}</p></div>`:''}
+    ${c.opening?`<div class="panel tight"><span class="sc small" style="color:var(--gold)">THE CAMERA SEES</span><p style="color:#e3d7b8">${nl2br(c.opening)}</p></div>`:''}
     <div class="panel tight">
       <h3 style="color:var(--gold)">Cards played into the scene <span class="muted small">(${1+c.contributions.length} of 3)</span></h3>
-      ${contribHTML || '<p class="small muted" style="font-style:italic">None yet.</p>'}
+      ${contribHTML || '<p class="small muted">None yet.</p>'}
       ${addingHTML}
     </div>
-    ${endSceneHTML || (iAmStarter?'':'<p class="small muted center" style="font-style:italic">Waiting for '+esc(p.name)+' to end the scene…</p>')}`;
+    ${endSceneHTML || (iAmStarter?'':'<p class="small muted center">Waiting for '+esc(p.name)+' to end the scene…</p>')}`;
 }
 function renderOnlineSceneRefresh(){ renderOnlineScene(State.G); }
 export function onlineStartContrib(){ draft.adding = {pick:null, how:''}; renderOnlineSceneRefresh(); }
@@ -547,7 +547,7 @@ function renderOnlineResolveInline(room){
   return `
     <div class="panel">
       <h3 style="color:var(--gold)">Consult each archetype’s face-up condition</h3>
-      <p class="small muted" style="font-style:italic">If it was met in this scene, check it to turn the card.</p>
+      <p class="small muted">If it was met in this scene, check it to turn the card.</p>
       ${room.archetypes.map((a,i)=>{
         const s = faceUp(a);
         return `<div class="panel tight" style="display:flex;gap:12px;align-items:flex-start">
@@ -555,7 +555,7 @@ function renderOnlineResolveInline(room){
           <label for="online-flip-${i}" style="cursor:pointer">
             <span class="sc" style="color:#eddfba">${esc(a.name||a.role)}</span>
             ${i===c.archIdx?'<span class="pill" style="border-color:var(--blood-bright);color:#e8c9c9">led this scene</span>':''}
-            <br><em class="small" style="color:#b3a687">${esc(s.cond)}</em> ${toneBadge(s.tone)}
+            <br><span class="small" style="color:#b3a687">${esc(s.cond)}</span> ${toneBadge(s.tone)}
           </label>
         </div>`;
       }).join('')}
@@ -581,13 +581,13 @@ function renderOnlineSecret(room){
   $('scr-secret').innerHTML = `
     <div class="center" style="margin-top:20px">
       <h2 style="color:#c9b3de;margin-top:6px">A Hidden Sin Comes to Light</h2>
-      <p class="muted" style="font-style:italic">${esc(p.name)}’s secret is unlocked.</p>
+      <p class="muted">${esc(p.name)}’s secret is unlocked.</p>
     </div>
     <div class="ornament" style="color:#8a63a8">✧</div>
     <div style="max-width:720px;margin:0 auto">
       <div class="secretbox" style="padding:16px">
         <div>${secret.combo.map(toneBadge).join(' ')}</div>
-        <p style="font-size:1.15rem;font-style:italic;color:#e0d4ec;margin-top:8px">“${esc(secret.q)}”</p>
+        <p style="font-size:1.15rem;color:#e0d4ec;margin-top:8px">“${esc(secret.q)}”</p>
       </div>
       <h3 style="color:#c9b3de;margin-top:16px">Choose three omens <span class="small">(${sel.length} of ${Math.min(3,room.omenRow.length)})</span></h3>
       <div class="cardgrid compact">${room.omenRow.map((o,i)=>omenCard(o,'onlineToggleSecretOmen',i)).join('')}</div>

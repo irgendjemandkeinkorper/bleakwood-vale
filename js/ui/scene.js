@@ -25,7 +25,7 @@ export function renderScenePick(){
     </div>
     <div class="panel">
       <label class="fld">What the camera sees as the scene opens</label>
-      <p class="small muted" style="font-style:italic;margin-bottom:6px">Every scene begins as if filmed. The fog, the light, the hour, who stands where. Then narrate freely, aloud.</p>
+      <p class="small muted" style="margin-bottom:6px">Every scene begins as if filmed. The fog, the light, the hour, who stands where. Then narrate freely, aloud.</p>
       <textarea id="scene-opening" placeholder="The camera drifts through…"></textarea>
       <div class="btnrow">
         <button class="primary" id="btn-begin" disabled onclick="beginScene()">Begin the Scene</button>
@@ -66,7 +66,7 @@ export function renderScenePlay(){
     <div class="chron-entry" style="margin:8px 0">
       <div class="ce-head"><span class="ce-title" style="font-size:.95rem">${x.kind==='omen'?x.card.glyph+' ':''}${esc(x.card.title)}</span>
       <span class="ce-meta">played by ${esc(G.players[x.pi].name)}${x.kind==='scene'?' · '+toneBadge(x.card.tone):' · omen'}</span></div>
-      <div class="small" style="font-style:italic;color:#cfc2a2">${nl2br(x.how)||'<span class="muted">…manifests wordlessly.</span>'}</div>
+      <div class="small" style="color:#cfc2a2">${nl2br(x.how)||'<span class="muted">…manifests wordlessly.</span>'}</div>
     </div>`).join('');
 
   let addingHTML = '';
@@ -78,7 +78,7 @@ export function renderScenePlay(){
       const ap = G.players[c.adding.pi];
       if(!c.adding.pick){
         addingHTML = `
-          <p class="small" style="color:var(--gold);font-style:italic">${esc(ap.name)} — choose a scene card from your hand, or an omen from the row:</p>
+          <p class="small" style="color:var(--gold)">${esc(ap.name)} — choose a scene card from your hand, or an omen from the row:</p>
           ${ap.hand.length?`<div class="cardgrid">${ap.hand.map((sc,i)=>sceneCardHTML(sc,'pickContribScene',i)).join('')}</div>`:''}
           ${G.omenRow.length?`<div class="cardgrid compact">${G.omenRow.map((o,i)=>omenCard(o,'pickContribOmen',i)).join('')}</div>`:''}
           <button class="ghost" onclick="cancelContrib()">Never mind</button>`;
@@ -106,23 +106,23 @@ export function renderScenePlay(){
         <div class="c-title">${esc(c.card.title)}</div>
         <div class="c-prompt">${esc(c.card.prompt)}</div>
         ${c.card.tone?`<div style="margin-top:8px">${toneBadge(c.card.tone)}</div>`:''}
-        ${c.element?`<hr class="rule" style="border-color:rgba(60,45,25,.3)"><div class="small" style="color:var(--blood)"><strong>Include:</strong> <em>${esc(c.element)}</em></div>`:''}
+        ${c.element?`<hr class="rule" style="border-color:rgba(60,45,25,.3)"><div class="small" style="color:var(--blood)"><strong>Include:</strong> <span>${esc(c.element)}</span></div>`:''}
       </div>
       <div>${archCard(a)}
-        <p class="small muted" style="margin-top:6px;font-style:italic">Led by ${esc(p.name)}. The prompt is a door, not a cage — interpret it as broadly as you please.</p>
+        <p class="small muted" style="margin-top:6px">Led by ${esc(p.name)}. The prompt is a door, not a cage — interpret it as broadly as you please.</p>
       </div>
     </div>
-    ${c.opening?`<div class="panel tight"><span class="sc small" style="color:var(--gold)">THE CAMERA SEES</span><p style="font-style:italic;color:#e3d7b8">${nl2br(c.opening)}</p></div>`:''}
+    ${c.opening?`<div class="panel tight"><span class="sc small" style="color:var(--gold)">THE CAMERA SEES</span><p style="color:#e3d7b8">${nl2br(c.opening)}</p></div>`:''}
 
     <div class="panel tight">
       <h3 style="color:var(--gold)">Cards played into the scene <span class="muted small">(${1+c.contributions.length} of 3)</span></h3>
-      ${contribHTML || '<p class="small muted" style="font-style:italic">None yet. Any other storyteller may buy into the scene with one card apiece.</p>'}
+      ${contribHTML || '<p class="small muted">None yet. Any other storyteller may buy into the scene with one card apiece.</p>'}
       ${addingHTML}
     </div>
 
     <div class="panel">
       <label class="fld">The record of what happens</label>
-      <p class="small muted" style="font-style:italic;margin-bottom:6px">Play the scene aloud — narrate, act, cast one another in roles. Note here what the Chronicle should remember: who appeared, what was said, what was discovered.</p>
+      <p class="small muted" style="margin-bottom:6px">Play the scene aloud — narrate, act, cast one another in roles. Note here what the Chronicle should remember: who appeared, what was said, what was discovered.</p>
       <textarea id="scene-happened" style="min-height:130px" oninput="setSceneHappened(this.value)" placeholder="What the Chronicle will remember of this scene…">${esc(c.happened||'')}</textarea>
       <div class="btnrow">
         <button class="blood" onclick="endScene()">The scene ends — ${esc(p.name)} says so</button>

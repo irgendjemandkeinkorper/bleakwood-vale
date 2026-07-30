@@ -16,7 +16,7 @@ export function renderResolve(){
   const c = G.current;
   $('scr-resolve').innerHTML = `
     <h2 class="center">The scene concludes</h2>
-    <p class="center muted" style="font-style:italic">Consult each archetype’s face-up condition. If it was met in this scene, turn the card.</p>
+    <p class="center muted">Consult each archetype’s face-up condition. If it was met in this scene, turn the card.</p>
     <div class="ornament">❦</div>
     <div style="max-width:680px;margin:0 auto">
       ${G.archetypes.map((a,i)=>{
@@ -26,7 +26,7 @@ export function renderResolve(){
           <label for="flip-${i}" style="cursor:pointer">
             <span class="sc" style="color:#eddfba">${esc(a.name||a.role)}</span>
             ${i===c.archIdx?'<span class="pill" style="border-color:var(--blood-bright);color:#e8c9c9">led this scene</span>':''}
-            <br><em class="small" style="color:#b3a687">${esc(s.cond)}</em> ${toneBadge(s.tone)}
+            <br><span class="small" style="color:#b3a687">${esc(s.cond)}</span> ${toneBadge(s.tone)}
           </label>
         </div>`;
       }).join('')}
@@ -82,19 +82,19 @@ export function renderSecretUnlock(unlock, tones){
     <div class="center" style="margin-top:20px">
       <div class="sc" style="color:#c9b3de;letter-spacing:.35em;font-size:.85rem">THE TONES ALIGN — ${tones.map(t=>t.toUpperCase()).join(', ')}</div>
       <h2 style="color:#c9b3de;margin-top:6px">A Hidden Sin Comes to Light</h2>
-      <p class="muted" style="font-style:italic">${esc(p.name)}’s secret is unlocked. This is a bonus scene: theirs alone. No cards may be played into it.</p>
+      <p class="muted">${esc(p.name)}’s secret is unlocked. This is a bonus scene: theirs alone. No cards may be played into it.</p>
     </div>
     <div class="ornament" style="color:#8a63a8">✧</div>
     <div style="max-width:720px;margin:0 auto">
       <div class="secretbox" style="padding:16px">
         <div>${unlock.secret.combo.map(toneBadge).join(' ')}</div>
-        <p style="font-size:1.15rem;font-style:italic;color:#e0d4ec;margin-top:8px">“${esc(unlock.secret.q)}”</p>
+        <p style="font-size:1.15rem;color:#e0d4ec;margin-top:8px">“${esc(unlock.secret.q)}”</p>
       </div>
       <h3 style="color:#c9b3de;margin-top:16px">Choose three omens to answer with <span class="small" id="secret-count">(0 of 3)</span></h3>
       <div class="cardgrid compact">${G.omenRow.map((o,i)=>omenCard(o,'toggleSecretOmen',i)).join('')}</div>
       <div class="panel">
         <label class="fld" style="color:#c9b3de">The vignette</label>
-        <p class="small muted" style="font-style:italic;margin-bottom:6px">Use the three omens — literally, metaphorically, obliquely — to show us the answer.</p>
+        <p class="small muted" style="margin-bottom:6px">Use the three omens — literally, metaphorically, obliquely — to show us the answer.</p>
         <textarea id="secret-answer" style="min-height:120px" placeholder="Show us…"></textarea>
         <div class="btnrow">
           <button class="primary" id="btn-secret" disabled onclick="confirmSecret()">So It Is Revealed</button>
