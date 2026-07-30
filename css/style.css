@@ -54,6 +54,25 @@ body::before{
 @media (prefers-reduced-motion: reduce){
   body::before{ animation:none; }
 }
+/* A soft candlelit vignette, breathing very faintly — sits above the fog
+   layer (z-index 0/1) but below page content (.wrap is z-index 2), so it
+   never competes with text for attention. */
+.wrap::before{
+  content:'';
+  position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 55% 40% at 50% 6%, rgba(176,141,63,.06), transparent 62%),
+    radial-gradient(ellipse 90% 75% at 50% 50%, transparent 55%, rgba(0,0,0,.38) 100%);
+  pointer-events:none;
+}
+@media (prefers-reduced-motion: no-preference){
+  .wrap::before{ animation:candleFlicker 6.5s ease-in-out infinite; }
+}
+@keyframes candleFlicker{
+  0%,19%,24%,53%,58%,100%{ opacity:1; }
+  21%,56%{ opacity:.88; }
+  40%{ opacity:.96; }
+}
 /* A jagged treeline, always at the foot of the world. */
 body::after{
   content:'';
@@ -91,9 +110,13 @@ hr.rule{border:none;border-top:1px solid rgba(176,141,63,.35);margin:14px 0}
 #topbar button{padding:4px 12px;font-size:.8rem}
 
 /* ---------- screens ---------- */
-.screen{display:none;animation:fadein .5s ease}
+.screen{display:none;animation:fadein .6s cubic-bezier(.2,.6,.2,1)}
 .screen.active{display:block}
-@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fadein{
+  from{opacity:0;transform:translateY(10px) scale(.986);filter:blur(3px)}
+  to{opacity:1;transform:none;filter:blur(0)}
+}
+@media (prefers-reduced-motion: reduce){ .screen{animation:none} }
 
 /* ---------- buttons ---------- */
 button{
@@ -234,8 +257,28 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
 .minicard .mc-t{font-family:'IM Fell English SC',serif;font-size:.85rem}
 .minicard.omen{background:#241c26;color:#d9cfe0;border-color:#5c4a63}
 
+/* ---------- milestone rail (hub) ---------- */
+.ms-rail{border-color:rgba(176,141,63,.3)}
+.ms-list{display:flex;flex-direction:column}
+.ms-row{
+  display:flex;align-items:baseline;gap:8px;padding:5px 4px;cursor:pointer;
+  border-bottom:1px solid rgba(176,141,63,.12);
+  animation:msIn .45s ease backwards;
+}
+.ms-row:last-child{border-bottom:none}
+.ms-row:hover{background:rgba(176,141,63,.08)}
+.ms-icon{color:var(--gold);font-size:.85rem;flex:none}
+.ms-text{font-size:.85rem;color:#cfc2a2}
+@keyframes msIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){ .ms-row{animation:none} }
+
 /* ---------- journal / chronicle ---------- */
-.chron-entry{border-left:3px solid var(--gold-soft);padding:12px 16px;margin:16px 0;background:rgba(24,19,12,.55)}
+.chron-entry{
+  border-left:3px solid var(--gold-soft);padding:12px 16px;margin:16px 0;background:rgba(24,19,12,.55);
+  animation:chronIn .5s ease backwards;
+}
+@keyframes chronIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){ .chron-entry{animation:none} }
 .chron-entry.secret{border-left-color:#8a63a8;background:rgba(30,22,34,.5)}
 .chron-entry.close{border-left-color:var(--blood-bright)}
 .chron-entry.struck{opacity:.35;text-decoration:line-through}

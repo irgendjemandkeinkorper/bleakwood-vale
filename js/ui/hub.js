@@ -7,6 +7,39 @@ import { actToneCounts } from '../engine/rules.js';
 import { renderScenePlay } from './scene.js';
 import { viewChronicle } from './renderChronicle.js';
 
+/* ---------------- milestone rail ----------------
+   A compact, newest-first digest of the story's key beats — act
+   boundaries, archetypes turning, and Hidden Sins coming to light —
+   so the table can glance back without leaving the hub. "The Record"
+   (renderChronicle.js) remains the full detailed account; this is a
+   summary derived from the same G.journal, not a second source of truth. */
+function computeMilestones(G){
+  const ms = [];
+  let lastAct = 0;
+  const openAct = a => { for(let n=lastAct+1;n<=a;n++) ms.push({icon:'●', text:`${ACT_NAMES[n]} began`}); lastAct = a; };
+  G.journal.forEach(e=>{
+    if(e.struck) return; // stricken things never were
+    if(e.act > lastAct) openAct(e.act);
+    if(e.type==='close') ms.push({icon:'●', text:`${ACT_NAMES[e.act]} closed — ${e.cardTitle}`});
+    else if(e.type==='secret') ms.push({icon:'✦', text:`A Hidden Sin revealed — ${e.playerName}`});
+    else if(e.type==='scene') (e.flips||[]).forEach(f=>ms.push({icon:'◆', text:f}));
+  });
+  if(G.act>=1 && G.act<=3 && G.act>lastAct) openAct(G.act);
+  return ms;
+}
+function milestoneRailHTML(G){
+  const all = computeMilestones(G);
+  if(!all.length) return '';
+  const shown = all.slice().reverse().slice(0,8);
+  return `<div class="panel tight ms-rail">
+    <h3 style="color:var(--gold)">The Tale So Far</h3>
+    <div class="ms-list">
+      ${shown.map((m,i)=>`<div class="ms-row" style="animation-delay:${i*0.05}s" onclick="viewChronicle(true)"><span class="ms-icon">${m.icon}</span><span class="ms-text">${esc(m.text)}</span></div>`).join('')}
+    </div>
+    ${all.length>shown.length?`<p class="small muted" style="margin-top:6px;cursor:pointer" onclick="viewChronicle(true)">+${all.length-shown.length} earlier beat${all.length-shown.length===1?'':'s'} — open The Record</p>`:''}
+  </div>`;
+}
+
 /* ---------------- acts ---------------- */
 export function startAct(act){
   const G = State.G;
@@ -33,6 +66,8 @@ export function renderHub(){
     <h2 class="center" style="margin-top:8px">${ACT_NAMES[G.act]}</h2>
     <p class="center muted">${esc(G.hook.title)} · The Victim: ${esc(G.victim.name)}</p>
     <div class="ornament">✦ ❦ ✦</div>
+
+    ${milestoneRailHTML(G)}
 
     ${G.journal.length ? `<h3 style="color:var(--gold)">Last Scene</h3>${journalEntrySummaryHTML(G.journal[G.journal.length-1], {compact:true})}` : ''}
 

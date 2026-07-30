@@ -22,11 +22,12 @@ export function renderChronicle(interim){
   const G = State.G;
   const over = G.act>3;
   const entriesByAct = [1,2,3].map(act=>G.journal.filter(e=>e.act===act));
-  const entryHTML = (e,gi)=>{
+  const entryHTML = (e,gi,ri)=>{
+    const delay = `style="animation-delay:${Math.min(ri,10)*0.04}s"`;
     const strike = `<button class="ghost" style="float:right;font-size:.7rem" onclick="toggleStrike(${gi},${interim?'true':'false'})">${e.struck?'restore':'☒ strike'}</button>`;
-    if(e.type==='note') return `<div class="chron-entry${e.struck?' struck':''}">${strike}<span class="small muted">${esc(e.text)}</span></div>`;
+    if(e.type==='note') return `<div class="chron-entry${e.struck?' struck':''}" ${delay}>${strike}<span class="small muted">${esc(e.text)}</span></div>`;
     if(e.type==='secret') return `
-      <div class="chron-entry secret${e.struck?' struck':''}">${strike}
+      <div class="chron-entry secret${e.struck?' struck':''}" ${delay}>${strike}
         <div class="ce-head"><span class="ce-title" style="color:#c9b3de">A Hidden Sin Revealed</span>
           <span class="ce-meta">${esc(e.playerName)} · ${e.combo.map(toneBadge).join(' ')}</span></div>
         <p class="ce-q">“${esc(e.question)}”</p>
@@ -34,7 +35,7 @@ export function renderChronicle(interim){
         ${e.answer?`<blockquote>${nl2br(e.answer)}</blockquote>`:''}
       </div>`;
     return `
-      <div class="chron-entry ${e.type==='close'?'close':''}${e.struck?' struck':''}">${strike}
+      <div class="chron-entry ${e.type==='close'?'close':''}${e.struck?' struck':''}" ${delay}>${strike}
         <div class="ce-head">
           <span class="ce-title">${e.type==='close'?'ACT CLOSE — ':''}${esc(e.cardTitle)}</span>
           <span class="ce-meta">led by ${esc(e.playerName)} as ${esc(e.archName)} (${esc(e.archRole)})</span>
@@ -47,10 +48,10 @@ export function renderChronicle(interim){
         ${e.flips.length?`<p class="small muted">${e.flips.map(esc).join('; ')}.</p>`:''}
       </div>`;
   };
-  let gi=-1;
+  let gi=-1, ri=0;
   const acts = entriesByAct.map((list,ai)=> list.length ? `
     <h3 class="sc" style="color:var(--gold);margin-top:22px">${ACT_NAMES[ai+1]}</h3>
-    ${list.map(e=>{gi=G.journal.indexOf(e);return entryHTML(e,gi);}).join('')}` : '').join('');
+    ${list.map(e=>{gi=G.journal.indexOf(e);return entryHTML(e,gi,ri++);}).join('')}` : '').join('');
 
   $('scr-chronicle').innerHTML = `
     <div class="masthead" style="padding-top:16px">
