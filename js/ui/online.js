@@ -5,11 +5,12 @@ import { show } from './screens.js';
 import { archCard, omenCard, sceneCardHTML } from './cards.js';
 import { faceUp, maxContrib, actToneCounts } from '../engine/rules.js';
 import { renderChronicle } from './renderChronicle.js';
-import { createRoom, joinRoom, subscribeRoom, unsubscribeRoom } from '../sync/liveRoom.js';
+import { createRoom, joinRoom, subscribeRoom, unsubscribeRoom, subscribeMyPrivate, unsubscribeMyPrivate } from '../sync/liveRoom.js';
 import { getUid, ensureSignedIn } from '../sync/auth.js';
 import {
   liveBeginTale, liveSaveArchSetup, liveFinishVictim, liveBeginScene, liveBeginClose,
-  liveContribute, liveEndSceneAndResolve, liveConfirmSecret, liveTradeOmen, liveForfeitScene
+  liveContribute, liveEndSceneAndResolve, liveConfirmSecret, liveClaimSecret,
+  liveAdvanceAfterClose, liveTradeOmen, liveForfeitScene
 } from '../sync/liveActions.js';
 
 /* Small per-device scratch state for in-progress, uncommitted composition
@@ -19,6 +20,51 @@ import {
    room-driven phase changes shape from under it. */
 let draft = {};
 function resetDraft(){ draft = {}; }
+
+/* My own hand + Hidden Sin(s) — kept live via a subscription to my own
+   private doc, never read from the public room object (Stage 4). */
+let myPrivate = {hand:[], secrets:[]};
+
+/* Guards against re-attempting a claim we already tried for the same
+   journal entry (e.g. if it fails, don't retry-spam on every snapshot). */
+let lastClaimAttempt = -1;
+/* Timer for the delayed advance-after-close cascade; cleared whenever the
+   underlying condition stops being true so it never fires stale. */
+let advanceTimer = null;
+
+function clearAdvanceTimer(){ if(advanceTimer){ clearTimeout(advanceTimer); advanceTimer = null; } }
+
+/* Called on every room snapshot. Reactively claims a Hidden Sin if my own
+   private secrets match the newest journal entry, and schedules the
+   delayed act-advance once an Act Close has resolved with nothing
+   pending — see the file header in js/sync/liveActions.js for why this
+   can't just happen synchronously inside the resolving transaction. */
+function reactToRoom(room){
+  if(room.phase!=='playing'){ clearAdvanceTimer(); return; }
+  if(room.current===null && !room.pendingSecret && room.journal.length>0){
+    const idx = room.journal.length-1;
+    if(idx!==lastClaimAttempt){
+      lastClaimAttempt = idx;
+      const entry = room.journal[idx];
+      if(entry && (entry.type==='scene' || entry.type==='close')){
+        const counts = {Obsession:0,Guilt:0,Dread:0};
+        entry.tones.forEach(t=>counts[t]++);
+        const haveMatch = myPrivate.secrets.some(s => !s.used &&
+          (()=>{ const need={Obsession:0,Guilt:0,Dread:0}; s.combo.forEach(t=>need[t]++);
+                 return ['Obsession','Guilt','Dread'].every(t=>counts[t]>=need[t]); })());
+        if(haveMatch) liveClaimSecret(State.onlineRoomCode, idx).catch(()=>{}); // lost the race or stale — fine, silent
+      }
+    }
+  }
+  if(room.current===null && !room.pendingSecret && room.closeDone){
+    if(!advanceTimer) advanceTimer = setTimeout(()=>{
+      advanceTimer = null;
+      liveAdvanceAfterClose(State.onlineRoomCode).catch(()=>{});
+    }, 1500);
+  } else {
+    clearAdvanceTimer();
+  }
+}
 
 function mySeatIndex(room){
   const uid = getUid();
@@ -31,6 +77,8 @@ function fail(err){ alert(err && err.message ? err.message : String(err)); }
 /* ---------------- entry: create or join ---------------- */
 export function showOnlineEntry(){
   unsubscribeRoom();
+  unsubscribeMyPrivate();
+  clearAdvanceTimer();
   State.onlineRoomCode = null;
   State.G = null;
   $('scr-online-entry').innerHTML = `
@@ -83,11 +131,16 @@ export async function onlineJoinRoom(){
 function enterRoom(code){
   State.onlineRoomCode = code;
   try { history.replaceState(null, '', '?room='+code); } catch(e){}
+  myPrivate = {hand:[], secrets:[]};
+  lastClaimAttempt = -1;
+  subscribeMyPrivate(code, getUid(), priv => { myPrivate = priv; });
   subscribeRoom(code, routeAndRender);
 }
 
 export function leaveOnlineRoom(){
   unsubscribeRoom();
+  unsubscribeMyPrivate();
+  clearAdvanceTimer();
   State.onlineRoomCode = null;
   State.G = null;
   try { history.replaceState(null, '', location.pathname); } catch(e){}
@@ -116,6 +169,7 @@ export async function tryAutoRejoin(){
 function routeAndRender(room){
   State.G = room;
   resetDraft();
+  reactToRoom(room);
   if(room.phase==='lobby'){ renderOnlineLobby(room); show('scr-online-lobby'); return; }
   if(room.phase==='finished' || room.act>3){ renderChronicle(false); show('scr-chronicle'); return; }
   if(room.phase==='archsetup'){ renderOnlineArchSetup(room); show('scr-archsetup'); return; }
@@ -236,10 +290,10 @@ function renderOnlineHub(room){
         ${room.players.map((p,i)=>{
           const isMe = i===mySeat;
           if(p.scenesLeft<=0) return `<span class="pill" style="opacity:.5">${esc(p.name)} — done</span>`;
-          if(p.hand.length===0 && (p.omens.length===0 || room.sceneDeck.length===0))
+          if(p.handCount===0 && (p.omens.length===0 || room.sceneDeck.length===0))
             return isMe ? `<button class="blood" onclick="onlineForfeitScene(${i})">Forfeit my scene (no cards)</button>`
                         : `<button class="ghost" onclick="onlineForfeitScene(${i})">${esc(p.name)} has no cards — forfeit for them</button>`;
-          if(p.hand.length===0)
+          if(p.handCount===0)
             return `<span class="pill">${esc(p.name)} — must trade an omen for a scene card below</span>`;
           if(isMe) return `<button class="primary" onclick="onlineStartScene()">Begin a scene${p.scenesLeft>1?` (${p.scenesLeft} left)`:''}</button>`;
           return `<span class="pill">${esc(p.name)} may begin a scene</span>`;
@@ -265,25 +319,32 @@ function renderOnlineHub(room){
     <p class="small muted" style="margin-top:10px;font-style:italic">Scene deck: ${room.sceneDeck.length} card${room.sceneDeck.length===1?'':'s'} remaining · Omen deck: ${room.omenDeck.length}</p>`;
 }
 function onlinePlayerPanel(p, i, isMe, room){
-  // Deliberately NOT reusing cards.js's playerPanel() here: its trade
-  // button always calls the local/hotseat tradeOmen(pi,oi), which would
-  // mutate State.G directly and bypass Firestore entirely if left in an
-  // online panel that isn't mine. Built fresh so every action routes
-  // through the synced liveActions calls.
-  return `<div class="ppanel">
-    <h4>${esc(p.name)}${isMe?' (you)':''}</h4>
-    <div class="handrow">
-      ${p.hand.map(c=>`<div class="minicard"><div class="mc-t">${esc(c.title)}</div><span class="tone ${c.tone}" style="font-size:.6rem">${c.tone}</span></div>`).join('') || '<span class="small muted"><em>No scene cards in hand.</em></span>'}
-    </div>
-    ${p.omens.length?`<div class="handrow">${p.omens.map((o,oi)=>`
-      <div class="minicard omen"><div class="mc-t">${o.glyph} ${esc(o.title)}</div>
-      ${isMe && room.sceneDeck.length?`<button class="ghost" style="margin-top:4px;font-size:.7rem;padding:2px 8px" onclick="onlineTradeOmen(${oi})">trade for a scene card</button>`:''}</div>`).join('')}</div>`:''}
-    ${p.secrets.map(s=>`
-      <details class="secretbox"><summary>Hidden Sin ${s.used?'— revealed':'(theirs alone to read)'}</summary>
+  // Stage 4: hand/secrets are private. My own panel shows the real
+  // cards (from myPrivate, kept live via my own private-doc
+  // subscription); everyone else's panel shows counts only — the
+  // whole point of this stage. Deliberately NOT reusing cards.js's
+  // playerPanel() here: its trade button always calls the local/
+  // hotseat tradeOmen(pi,oi), which would mutate State.G directly and
+  // bypass Firestore if left in a panel that isn't mine.
+  const handHTML = isMe
+    ? (myPrivate.hand.map(c=>`<div class="minicard"><div class="mc-t">${esc(c.title)}</div><span class="tone ${c.tone}" style="font-size:.6rem">${c.tone}</span></div>`).join('')
+       || '<span class="small muted"><em>No scene cards in hand.</em></span>')
+    : `<span class="small muted"><em>${p.handCount} scene card${p.handCount===1?'':'s'} in hand.</em></span>`;
+  const secretsHTML = isMe
+    ? myPrivate.secrets.map(s=>`
+      <details class="secretbox"><summary>Hidden Sin ${s.used?'— revealed':'(yours alone to read)'}</summary>
         <div class="small" style="margin-top:6px">${s.combo.map(toneBadge).join(' ')}<br>
         <em style="color:#c9b3de">${esc(s.q)}</em>
         ${s.used?'':'<br><span class="muted">Unlocks when a scene’s tones contain this combination.</span>'}</div>
-      </details>`).join('')}
+      </details>`).join('')
+    : (p.secretsCount ? `<p class="small muted" style="font-style:italic">${p.unrevealedSecretsCount} unrevealed Hidden Sin${p.unrevealedSecretsCount===1?'':'s'}.</p>` : '');
+  return `<div class="ppanel">
+    <h4>${esc(p.name)}${isMe?' (you)':''}</h4>
+    <div class="handrow">${handHTML}</div>
+    ${p.omens.length?`<div class="handrow">${p.omens.map((o,oi)=>`
+      <div class="minicard omen"><div class="mc-t">${o.glyph} ${esc(o.title)}</div>
+      ${isMe && room.sceneDeck.length?`<button class="ghost" style="margin-top:4px;font-size:.7rem;padding:2px 8px" onclick="onlineTradeOmen(${oi})">trade for a scene card</button>`:''}</div>`).join('')}</div>`:''}
+    ${secretsHTML}
   </div>`;
 }
 export function onlineStartScene(){
@@ -346,13 +407,11 @@ export async function onlineBeginClose(){
 /* ---------------- scene: pick ---------------- */
 function renderOnlineScenePick(){
   const room = State.G;
-  const mySeat = mySeatIndex(room);
-  const p = room.players[mySeat];
   $('scr-scene').innerHTML = `
     <h2 class="center">You begin a scene</h2>
     <div class="ornament">❦</div>
     <h3 style="color:var(--gold)">Choose a scene card from your hand</h3>
-    <div class="cardgrid">${p.hand.map((sc,i)=>sceneCardHTML(sc,'onlinePickSceneCard',i)).join('')}</div>
+    <div class="cardgrid">${myPrivate.hand.map((sc,i)=>sceneCardHTML(sc,'onlinePickSceneCard',i)).join('')}</div>
     <h3 style="color:var(--gold)">Choose the lead archetype</h3>
     <div class="pgrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:8px">
       ${room.archetypes.map((a,i)=>archCard(a,'onlinePickArch',i)).join('')}
@@ -415,12 +474,12 @@ function renderOnlineScene(room){
     } else if(!draft.adding.pick){
       addingHTML = `
         <p class="small" style="color:var(--gold);font-style:italic">Choose a scene card from your hand, or an omen from the row:</p>
-        ${room.players[mySeat].hand.length?`<div class="cardgrid">${room.players[mySeat].hand.map((sc,i)=>sceneCardHTML(sc,'onlinePickContribScene',i)).join('')}</div>`:''}
+        ${myPrivate.hand.length?`<div class="cardgrid">${myPrivate.hand.map((sc,i)=>sceneCardHTML(sc,'onlinePickContribScene',i)).join('')}</div>`:''}
         ${room.omenRow.length?`<div class="cardgrid compact">${room.omenRow.map((o,i)=>omenCard(o,'onlinePickContribOmen',i)).join('')}</div>`:''}
         <button class="ghost" onclick="onlineCancelContrib()">Never mind</button>`;
     } else {
       const pk = draft.adding.pick;
-      const card = pk.kind==='scene' ? room.players[mySeat].hand[pk.idx] : room.omenRow[pk.idx];
+      const card = pk.kind==='scene' ? myPrivate.hand[pk.idx] : room.omenRow[pk.idx];
       addingHTML = `
         <div style="max-width:280px">${pk.kind==='scene'?sceneCardHTML(card):omenCard(card)}</div>
         <label class="fld">How does it manifest in the scene?</label>
@@ -516,8 +575,8 @@ export async function onlineApplyResolve(){
 /* ---------------- secret reveal ---------------- */
 function renderOnlineSecret(room){
   const u = room.pendingSecret;
-  const p = room.players[u.pi];
-  const secret = p.secrets[u.secretIndex];
+  const p = room.players[u.pi]; // this screen only ever renders for its own owner (gated in routeAndRender)
+  const secret = myPrivate.secrets[u.secretIndex];
   const sel = draft.secretSel || (draft.secretSel = []);
   $('scr-secret').innerHTML = `
     <div class="center" style="margin-top:20px">

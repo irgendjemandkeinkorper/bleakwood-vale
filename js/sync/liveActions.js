@@ -1,14 +1,21 @@
-/* Every function here wraps one guarded Firestore transaction: read the
-   room fresh, verify the action is still legal against that fresh read
-   (not against possibly-stale local state), mutate a plain object the
-   same shape as the old local G, write it back. None of these render
-   anything — the onSnapshot subscription in js/ui/online.js is the sole
-   place that reacts to the result (for every client, including the
-   actor), which is what makes two racing clients resolve safely: the
-   loser's transaction function re-runs against the winner's just-written
-   data and its own guard rejects it. */
+/* Every function here wraps one guarded Firestore transaction. Stage 4:
+   hand[]/secrets[] live in rooms/{code}/private/{uid}, readable and
+   writable only by that uid (see firestore.rules) — so a transaction
+   run on behalf of player A can read/write player A's own private doc,
+   but can never touch player B's. That constraint is why secret-matching
+   is no longer computed inside the scene-resolving transaction (Stage 3
+   could do this because everything was public): resolving a scene now
+   only records tones/journal/flips, and each client reactively checks
+   its OWN cached private secrets against the newest journal entry,
+   claiming it via liveClaimSecret if it matches. See the plan doc
+   (/home/adamjroder/.claude/plans/flickering-dreaming-puppy.md) for the
+   full reasoning. Acts still auto-advance, but via a separately callable,
+   idempotent liveAdvanceAfterClose() rather than inline in resolve —
+   every client schedules a short delayed call to it once it sees
+   closeDone with nothing pending, so whichever client's timer fires
+   first wins and everyone else's attempt safely no-ops. */
 import { runTransaction } from 'https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js';
-import { roomRef, dealAct, dealArchetypesAndCloses, getUid } from './liveRoom.js';
+import { roomRef, privateRef, dealAct, dealArchetypesAndCloses, getUid } from './liveRoom.js';
 import { db } from './firebase-init.js';
 import { SCENES, OMENS, SECRETS } from '../data/index.js';
 import { shuffle } from '../engine/utils.js';
@@ -19,18 +26,15 @@ function mySeat(room){
   return idx===undefined ? -1 : idx;
 }
 
-async function tx(code, fn){
-  await runTransaction(db, async t => {
-    const snap = await t.get(roomRef(code));
-    if(!snap.exists()) throw new Error('This tale no longer exists.');
-    const room = snap.data();
-    fn(room);
-    t.set(roomRef(code), room);
-  });
+async function readRoom(t, code){
+  const snap = await t.get(roomRef(code));
+  if(!snap.exists()) throw new Error('This tale no longer exists.');
+  return snap.data();
 }
 
 export async function liveBeginTale(code){
-  await tx(code, room => {
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
     if(room.phase !== 'lobby') throw new Error('The tale has already begun.');
     if(getUid() !== room.hostUid) throw new Error('Only the one who opened this table may begin the tale.');
     dealArchetypesAndCloses(room);
@@ -42,11 +46,13 @@ export async function liveBeginTale(code){
     room.pendingSecret = null;
     room.status = 'active';
     room.phase = 'archsetup';
+    t.set(roomRef(code), room);
   });
 }
 
 export async function liveSaveArchSetup(code, name, answer){
-  await tx(code, room => {
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
     if(room.phase !== 'archsetup') throw new Error('Not answering questions right now.');
     const answerer = room.players[room.archIdx % room.players.length];
     if(mySeat(room) !== room.players.indexOf(answerer)) throw new Error('Not your question to answer.');
@@ -57,38 +63,72 @@ export async function liveSaveArchSetup(code, name, answer){
     room.victim.facts.push({role:a.role, who:a.name, q:a.setup[room.hook.id], a:a.setupA});
     room.archIdx++;
     if(room.archIdx >= 6) room.phase = 'victim';
+    t.set(roomRef(code), room);
   });
 }
 
 export async function liveFinishVictim(code, victimName){
-  await tx(code, room => {
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
     if(room.phase !== 'victim') throw new Error('Not naming the Victim right now.');
+
     room.victim.name = (victimName||'').trim() || 'The Nameless Dead';
     room.omenDeck = shuffle(OMENS);
     room.omenRow = room.omenDeck.splice(0,6);
+
+    // Never read another player's private doc (the rules wouldn't allow
+    // it) — deal blind, writing each uid's fresh secrets with a partial
+    // update() rather than a read-then-overwrite.
     const secrets = shuffle(SECRETS);
-    room.players.forEach(p=>{ p.secrets=[{...secrets.pop(), used:false}]; });
-    if(room.players.length===1) room.players[0].secrets.push({...secrets.pop(), used:false});
-    dealAct(room, 1, SCENES);
+    const secretsToWrite = {};
+    room.players.forEach(p=>{
+      secretsToWrite[p.uid] = [{...secrets.pop(), used:false}];
+      p.secretsCount = 1;
+      p.unrevealedSecretsCount = 1;
+    });
+    if(room.players.length===1){
+      const p = room.players[0];
+      secretsToWrite[p.uid].push({...secrets.pop(), used:false});
+      p.secretsCount = 2; p.unrevealedSecretsCount = 2;
+    }
+
+    const hands = dealAct(room, 1, SCENES);
     room.phase = 'playing';
+
+    t.set(roomRef(code), room);
+    room.players.forEach(p => {
+      t.update(privateRef(code, p.uid), {hand: hands[p.uid], secrets: secretsToWrite[p.uid]});
+    });
   });
 }
 
 export async function liveBeginScene(code, cardIdx, archIdx, opening){
-  await tx(code, room => {
+  const uid = getUid();
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
     if(room.phase !== 'playing' || room.current !== null) throw new Error('A scene is already in progress.');
     if(room.pendingSecret) throw new Error('A Hidden Sin must be revealed first.');
     const pi = mySeat(room);
     const p = room.players[pi];
     if(!p || p.scenesLeft<=0) throw new Error('You have no scene left to start this act.');
-    if(cardIdx<0 || cardIdx>=p.hand.length) throw new Error('That card is no longer in your hand.');
-    const card = p.hand.splice(cardIdx,1)[0];
+
+    const pref = privateRef(code, uid);
+    const psnap = await t.get(pref);
+    const priv = psnap.exists() ? psnap.data() : {hand:[], secrets:[]};
+    if(cardIdx<0 || cardIdx>=priv.hand.length) throw new Error('That card is no longer in your hand.');
+    const card = priv.hand.splice(cardIdx,1)[0];
+    p.handCount = priv.hand.length;
+
     room.current = {type:'scene', starter:pi, archIdx, card, contributions:[], happened:'', opening:(opening||'').trim(), phase:'play'};
+
+    t.set(roomRef(code), room);
+    t.set(pref, priv);
   });
 }
 
 export async function liveBeginClose(code, archIdx, starterSeat, element, opening, closeTitle, closePrompt){
-  await tx(code, room => {
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
     if(room.current !== null) throw new Error('Something is already in progress.');
     if(room.pendingSecret) throw new Error('A Hidden Sin must be revealed first.');
     if(room.closeDone) throw new Error('The Act Close has already played.');
@@ -100,36 +140,39 @@ export async function liveBeginClose(code, archIdx, starterSeat, element, openin
       element, opening:(opening||'').trim(),
       contributions:[], happened:'', phase:'play'
     };
+    t.set(roomRef(code), room);
   });
 }
 
 export async function liveContribute(code, kind, idx, how){
-  await tx(code, room => {
+  const uid = getUid();
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
     const c = room.current;
     if(!c) throw new Error('No scene in progress.');
     if(c.contributions.length >= 2) throw new Error('This scene already holds three cards.');
     const pi = mySeat(room);
     if(pi === c.starter) throw new Error('You already opened this scene.');
     if(c.contributions.some(x=>x.pi===pi)) throw new Error('You already played into this scene.');
-    let card;
+
+    let card, pref, priv;
     if(kind==='scene'){
-      const hand = room.players[pi].hand;
-      if(idx<0 || idx>=hand.length) throw new Error('That card is no longer in your hand.');
-      card = hand.splice(idx,1)[0];
+      pref = privateRef(code, uid);
+      const psnap = await t.get(pref);
+      priv = psnap.exists() ? psnap.data() : {hand:[], secrets:[]};
+      if(idx<0 || idx>=priv.hand.length) throw new Error('That card is no longer in your hand.');
+      card = priv.hand.splice(idx,1)[0];
+      room.players[pi].handCount = priv.hand.length;
     } else {
       if(idx<0 || idx>=room.omenRow.length) throw new Error('That omen is no longer in the row.');
       card = room.omenRow.splice(idx,1)[0];
       if(room.omenDeck.length) room.omenRow.push(room.omenDeck.shift());
     }
     c.contributions.push({pi, kind, card, how:(how||'').trim()});
-  });
-}
 
-function afterSceneFlow(room){
-  if(room.closeDone){
-    if(room.act>=3){ room.phase='finished'; room.status='finished'; room.act=4; }
-    else dealAct(room, room.act+1, SCENES);
-  }
+    t.set(roomRef(code), room);
+    if(pref) t.set(pref, priv);
+  });
 }
 
 function countTonesAndResolve(room, flips){
@@ -164,53 +207,81 @@ function countTonesAndResolve(room, flips){
     room.players[c.starter].scenesLeft--;
   }
   if(c.type==='close') room.closeDone = true;
-
-  const unlock = matchSecretServer(room, tones, c.starter);
   room.current = null;
-  if(unlock){
-    room.pendingSecret = {pi:unlock.pi, secretIndex:unlock.secretIndex};
-  } else {
-    afterSceneFlow(room);
-  }
-}
-
-function matchSecretServer(room, tones, fromPi){
-  const counts = {Obsession:0,Guilt:0,Dread:0};
-  tones.forEach(t=>counts[t]++);
-  const np = room.players.length;
-  for(let k=1;k<=np;k++){
-    const pi = (fromPi+k)%np;
-    const secrets = room.players[pi].secrets;
-    for(let si=0; si<secrets.length; si++){
-      const s = secrets[si];
-      if(s.used) continue;
-      const need = {Obsession:0,Guilt:0,Dread:0};
-      s.combo.forEach(t=>need[t]++);
-      if(['Obsession','Guilt','Dread'].every(t=>counts[t]>=need[t])) return {pi, secretIndex:si};
-    }
-  }
-  return null;
+  // No secret-matching here — see file header. The client (js/ui/online.js)
+  // reactively checks the new journal entry against its own private
+  // secrets and, on a match, calls liveClaimSecret. If nothing is claimed,
+  // every client's delayed liveAdvanceAfterClose() call handles cascading
+  // to the next act once closeDone is true.
 }
 
 export async function liveEndSceneAndResolve(code, happenedText, flips){
-  await tx(code, room => {
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
     const c = room.current;
     if(!c) throw new Error('No scene in progress.');
     const pi = mySeat(room);
     if(pi !== c.starter) throw new Error('Only the one who began this scene may end it.');
     c.happened = (happenedText||'').trim();
     countTonesAndResolve(room, flips||[]);
+    t.set(roomRef(code), room);
+  });
+}
+
+/* Called reactively by a client that believes its own (privately held,
+   locally cached) secrets match the tones of the most recent journal
+   entry. journalIndex is passed by the caller (computed against its own
+   snapshot) and re-verified fresh here — if the group has moved on
+   (a new scene started, or someone else already claimed) this simply
+   fails with a friendly error and the caller gives up gracefully. */
+export async function liveClaimSecret(code, journalIndex){
+  const uid = getUid();
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
+    if(room.pendingSecret) throw new Error('Someone already claimed a Sin from this scene.');
+    if(room.current !== null) throw new Error('A new scene has already begun.');
+    if(journalIndex !== room.journal.length - 1) throw new Error('That moment has passed.');
+    const entry = room.journal[journalIndex];
+    if(!entry) throw new Error('Nothing to check yet.');
+    const pi = mySeat(room);
+    if(pi < 0) throw new Error('Not seated at this table.');
+
+    const pref = privateRef(code, uid);
+    const psnap = await t.get(pref);
+    const priv = psnap.exists() ? psnap.data() : {hand:[], secrets:[]};
+    const counts = {Obsession:0,Guilt:0,Dread:0};
+    entry.tones.forEach(tn=>counts[tn]++);
+    let matchIdx = -1;
+    for(let si=0; si<priv.secrets.length; si++){
+      const s = priv.secrets[si];
+      if(s.used) continue;
+      const need = {Obsession:0,Guilt:0,Dread:0};
+      s.combo.forEach(tn=>need[tn]++);
+      if(['Obsession','Guilt','Dread'].every(tn=>counts[tn]>=need[tn])){ matchIdx = si; break; }
+    }
+    if(matchIdx<0) throw new Error('No matching Hidden Sin.');
+
+    room.pendingSecret = {pi, secretIndex:matchIdx, journalIndex};
+    t.set(roomRef(code), room);
   });
 }
 
 export async function liveConfirmSecret(code, omenIndices, answerText){
-  await tx(code, room => {
+  const uid = getUid();
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
     const u = room.pendingSecret;
     if(!u) throw new Error('No Hidden Sin is waiting to be revealed.');
     const pi = mySeat(room);
     if(pi !== u.pi) throw new Error('This Sin is not yours to reveal.');
-    const secret = room.players[pi].secrets[u.secretIndex];
+
+    const pref = privateRef(code, uid);
+    const psnap = await t.get(pref);
+    const priv = psnap.exists() ? psnap.data() : {hand:[], secrets:[]};
+    const secret = priv.secrets[u.secretIndex];
     secret.used = true;
+    room.players[pi].unrevealedSecretsCount = priv.secrets.filter(s=>!s.used).length;
+
     room.journal.push({
       type:'secret', act:room.act, playerName:room.players[pi].name,
       question:secret.q, combo:secret.combo.slice(),
@@ -218,38 +289,73 @@ export async function liveConfirmSecret(code, omenIndices, answerText){
       answer:(answerText||'').trim(), struck:false
     });
     room.pendingSecret = null;
-    afterSceneFlow(room);
+
+    t.set(roomRef(code), room);
+    t.set(pref, priv);
+  });
+}
+
+/* Idempotent — safe for every client to call speculatively. Advances to
+   the next act (or finishes the game) only if the room is genuinely in
+   the "just closed, nothing pending" state; otherwise it's a silent
+   no-op, which is what lets multiple clients race this call safely. */
+export async function liveAdvanceAfterClose(code){
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
+    if(!room.closeDone || room.current !== null || room.pendingSecret) return;
+    if(room.act>=3){
+      room.phase='finished'; room.status='finished'; room.act=4;
+      t.set(roomRef(code), room);
+      return;
+    }
+    const hands = dealAct(room, room.act+1, SCENES); // never reads other players' private docs — see dealAct's comment
+    t.set(roomRef(code), room);
+    room.players.forEach(p => t.update(privateRef(code, p.uid), {hand: hands[p.uid]}));
   });
 }
 
 export async function liveTradeOmen(code, omenIdx){
-  await tx(code, room => {
+  const uid = getUid();
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
     const pi = mySeat(room);
     const p = room.players[pi];
     if(!room.sceneDeck.length) throw new Error('The scene deck is empty.');
     if(omenIdx<0 || omenIdx>=p.omens.length) throw new Error('You don’t hold that omen.');
+
+    const pref = privateRef(code, uid);
+    const psnap = await t.get(pref);
+    const priv = psnap.exists() ? psnap.data() : {hand:[], secrets:[]};
+
     const o = p.omens.splice(omenIdx,1)[0];
     room.omenDeck.unshift(o);
-    p.hand.push(room.sceneDeck.pop());
+    priv.hand.push(room.sceneDeck.pop());
+    p.handCount = priv.hand.length;
+
+    t.set(roomRef(code), room);
+    t.set(pref, priv);
   });
 }
 
 export async function liveForfeitScene(code, targetSeat){
-  await tx(code, room => {
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
     const p = room.players[targetSeat];
     if(!p) throw new Error('No such storyteller.');
     if(p.scenesLeft<=0) throw new Error('Nothing to forfeit.');
-    if(p.hand.length>0 || p.omens.length>0) throw new Error('They still have a card or omen to play.');
+    if(p.handCount>0 || p.omens.length>0) throw new Error('They still have a card or omen to play.');
     p.scenesLeft--;
     room.journal.push({type:'note', act:room.act, text:`${p.name} had neither scene card nor omen to trade, and lost their scene. The Vale went un-narrated a while.`, struck:false});
-    afterSceneFlow(room);
+    t.set(roomRef(code), room);
   });
 }
 
 export async function liveToggleStrike(code, journalIndex){
-  await tx(code, room => {
+  await runTransaction(db, async t => {
+    const room = await readRoom(t, code);
     if(!room.journal[journalIndex]) throw new Error('No such entry.');
     room.journal[journalIndex].struck = !room.journal[journalIndex].struck;
+    t.set(roomRef(code), room);
   });
 }
 

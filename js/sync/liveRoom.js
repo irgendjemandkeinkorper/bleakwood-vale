@@ -12,6 +12,7 @@ export let roomCode = null;
 let unsub = null;
 
 export const roomRef = code => doc(db, 'rooms', code);
+export const privateRef = (code, uid) => doc(db, 'rooms', code, 'private', uid);
 
 const CODE_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous chars
 function genCode(){
@@ -20,7 +21,11 @@ function genCode(){
 }
 
 function emptyPlayer(name, uid){
-  return {name, uid, hand:[], omens:[], secrets:[], scenesLeft:0};
+  // Stage 4: hand[]/secrets[] no longer live here — they're private, in
+  // rooms/{code}/private/{uid}. This public record only carries counts
+  // (and omens, which were never secret) so other players' UIs can show
+  // "has 3 cards, 1 unrevealed secret" without ever reading their data.
+  return {name, uid, omens:[], handCount:0, secretsCount:0, unrevealedSecretsCount:0, scenesLeft:0};
 }
 
 export async function createRoom(hook, hostName){
@@ -36,6 +41,11 @@ export async function createRoom(hook, hostName){
     firstScenePlayer:null, closeDone:false, pendingSecret:null,
     createdAt: Date.now()
   });
+  // Pre-create my own private doc. Not strictly required by the rules
+  // (I could write it lazily later, since I always have write access to
+  // my own doc) — done here so dealing logic can always use a plain
+  // update() rather than create-or-update branching.
+  await setDoc(privateRef(code, uid), {hand:[], secrets:[]});
   roomCode = code;
   return code;
 }
@@ -45,6 +55,7 @@ export async function joinRoom(code, name){
   code = (code||'').trim().toUpperCase();
   if(!code) throw new Error('Enter a room code.');
   const ref = roomRef(code);
+  let joined = false;
   await runTransaction(db, async tx => {
     const snap = await tx.get(ref);
     if(!snap.exists()) throw new Error('No tale is being told at that code.');
@@ -56,7 +67,9 @@ export async function joinRoom(code, name){
     const players = room.players.concat([emptyPlayer(name||`Storyteller ${idx+1}`, uid)]);
     const seats = {...room.seats, [uid]: idx};
     tx.update(ref, {players, seats});
+    joined = true;
   });
+  if(joined) await setDoc(privateRef(code, uid), {hand:[], secrets:[]});
   roomCode = code;
 }
 
@@ -67,9 +80,26 @@ export function subscribeRoom(code, onChange){
 }
 export function unsubscribeRoom(){ if(unsub){ unsub(); unsub=null; } }
 
-/* Shared by liveFinishVictim (Act I) and the auto-advance cascade
-   (Acts II/III) — mirrors startAct() from js/ui/hub.js, operating on a
-   plain room object instead of State.G. */
+let unsubPrivate = null;
+export function subscribeMyPrivate(code, uid, onChange){
+  if(unsubPrivate) unsubPrivate();
+  unsubPrivate = onSnapshot(privateRef(code, uid), snap => {
+    onChange(snap.exists() ? snap.data() : {hand:[], secrets:[]});
+  });
+  return unsubPrivate;
+}
+export function unsubscribeMyPrivate(){ if(unsubPrivate){ unsubPrivate(); unsubPrivate=null; } }
+
+/* Shared by liveFinishVictim (Act I) and the delayed advance-after-close
+   cascade (Acts II/III) — mirrors startAct() from js/ui/hub.js, operating
+   on a plain room object instead of State.G. Mutates `room`'s public
+   fields in place and RETURNS a { uid: hand[] } map for the caller to
+   write out with a partial update() per uid — deliberately not a read-
+   then-overwrite of each private doc, since Firestore's owner-only read
+   rule on rooms/{code}/private/{uid} means a transaction acting as one
+   player can never read another player's doc, only write to it. A
+   partial update() only ever touches the `hand` field, leaving each
+   player's `secrets` untouched without needing to have read it. */
 export function dealAct(room, act, SCENES){
   room.act = act;
   room.closeDone = false;
@@ -77,10 +107,14 @@ export function dealAct(room, act, SCENES){
   const np = room.players.length;
   room.sceneDeck = shuffle(SCENES[act].filter(s=>!s.hook || s.hook===room.hook.id).map(s=>({...s})));
   const handSize = np===1?5:3;
+  const hands = {};
   room.players.forEach(p=>{
-    p.hand = room.sceneDeck.splice(0, handSize);
+    const hand = room.sceneDeck.splice(0, handSize);
+    hands[p.uid] = hand;
+    p.handCount = hand.length;
     p.scenesLeft = np===1?3 : np===2?2 : 1;
   });
+  return hands;
 }
 
 export function dealArchetypesAndCloses(room){

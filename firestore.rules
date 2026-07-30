@@ -34,7 +34,21 @@ service cloud.firestore {
     }
 
     match /rooms/{roomCode}/private/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      // Reads stay strictly owner-only — this is the actual privacy
+      // boundary (hands, Hidden Sins). Writes are opened to any seated
+      // participant of the room, because dealing (a new act's hands, or
+      // Hidden Sins at game start) is one player's transaction writing
+      // into every seated player's private doc — Firestore transactions
+      // run as a single request.auth.uid, so a strict "only the owner
+      // may write their own doc" rule would make dealing impossible
+      // without a Cloud Function. This mirrors the same "trust the
+      // table" tradeoff already accepted for the public room doc's
+      // write rule (see the comment above) — any seated player COULD
+      // write garbage into another's hand, but nothing stops them from
+      // narrating dishonestly at the table either.
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null
+                   && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomCode)).data.seats;
     }
   }
 }
