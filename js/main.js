@@ -4,6 +4,7 @@
    the two. Everything else stays module-scoped. */
 import { show } from './ui/screens.js';
 import { flipArchCard } from './ui/cards.js';
+import { showIdleClicker, idleClick } from './ui/idle.js';
 import { renderHooks, chooseHook, renderPlayerInputs, confirmPlayers,
          beginArchSetup, saveArchSetup, finishVictim } from './ui/setup.js';
 import { renderHub, tradeOmen, forfeitScene, beginClose } from './ui/hub.js';
@@ -27,7 +28,7 @@ import {
 } from './ui/online.js';
 
 Object.assign(window, {
-  show, flipArchCard,
+  show, flipArchCard, showIdleClicker, idleClick,
   chooseHook, renderPlayerInputs, confirmPlayers, beginArchSetup, saveArchSetup, finishVictim,
   renderHub, tradeOmen, forfeitScene, beginClose,
   startSceneFor, pickSceneCard, pickArch, beginScene, pickContrib, pickContribScene, pickContribOmen,

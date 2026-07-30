@@ -253,10 +253,26 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
 .secretbox summary{cursor:pointer;color:#c9b3de;font-family:'IM Fell English SC',serif;font-size:.9rem}
 .pill{display:inline-block;border:1px solid rgba(176,141,63,.4);padding:1px 10px;font-size:.78rem;border-radius:10px;color:#cfc2a2}
 #overlay{
-  display:none;position:fixed;inset:0;z-index:100;background:rgba(5,4,3,.88);
+  display:none;position:fixed;inset:0;z-index:100;background:rgba(4,3,2,.97);
   overflow-y:auto;padding:30px 16px;
 }
 #overlay .ov-inner{max-width:760px;margin:0 auto}
+
+/* ---------- idle clicker ("Keep Watch") ---------- */
+.idle-scene{
+  display:flex;gap:22px;justify-content:center;align-items:flex-end;flex-wrap:wrap;
+  min-height:110px;margin:18px 0;padding:16px;
+  background:radial-gradient(ellipse 60% 100% at 50% 100%, rgba(61,95,78,.14), transparent 70%), rgba(0,0,0,.25);
+  border:1px dashed rgba(176,141,63,.3);border-radius:2px;
+}
+.idle-obj{
+  background:none;border:none;color:var(--moon);
+  font-size:2.6rem;line-height:1;cursor:pointer;padding:6px;
+  filter:drop-shadow(0 0 8px rgba(199,214,204,.15));
+  transition:filter .2s ease;
+}
+.idle-obj:hover, .idle-obj:focus-visible{filter:drop-shadow(0 0 14px rgba(199,214,204,.4))}
+.idle-count{font-size:1.6rem;color:var(--gold);font-family:'IM Fell English SC',serif}
 .masthead{
   text-align:center;padding:40px 10px 10px;position:relative;
 }
