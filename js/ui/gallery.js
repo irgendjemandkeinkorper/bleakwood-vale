@@ -108,5 +108,5 @@ function detailHTML(){
       ${t.sub?`<p class="small muted">${esc(t.sub)}</p>`:''}
       ${t.flavor?`<p style="color:#e3d7b8;font-style:italic;margin-top:8px">${esc(t.flavor)}</p>`:''}
     </div>
-    <div class="btnrow" style="justify-content:center;margin-top:16px"><button class="primary" onclick="closeOverlay()">Back to the Vale</button></div>`;
+    <div class="btnrow" style="justify-content:center;margin-top:16px"><button class="primary" onclick="closeGalleryDetail()">← Back to the Gallery</button></div>`;
 }

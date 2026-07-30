@@ -245,6 +245,25 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
 .hookcard h3{color:#eddfba;font-size:1.4rem}
 .hookcard .h-epi{font-style:italic;color:#b3a687;margin-top:8px;font-size:.95rem}
 
+/* ---------- rules: "Anatomy of a Scene" diagram ---------- */
+.turn-diagram{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap;justify-content:center;margin:14px 0 20px}
+.td-step{flex:1 1 150px;max-width:170px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.td-num{
+  width:22px;height:22px;border-radius:50%;background:var(--gold);color:#12100a;
+  display:flex;align-items:center;justify-content:center;font-family:'IM Fell English SC',serif;
+  font-size:.8rem;flex:none;
+}
+.td-label{color:var(--gold);font-family:'IM Fell English SC',serif;font-size:.8rem;letter-spacing:.08em;text-transform:uppercase}
+.td-visual{display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;min-height:64px}
+.td-arrow{align-self:center;color:var(--gold-soft);font-size:1.3rem;flex:none;padding:0 2px}
+.td-caption{font-size:.72rem;color:#b3a687;line-height:1.35}
+.card.mini{padding:6px 8px}
+.card.mini .c-kicker{font-size:.55rem}
+.card.mini .c-title{font-size:.72rem;margin:1px 0}
+.arch.mini{padding:5px 7px}
+.arch.mini .a-name{font-size:.68rem}
+.rules-example{border-left:2px solid var(--gold-soft);margin:6px 0 14px;padding:4px 10px;font-size:.82rem;color:#cfc2a2;font-style:italic}
+
 /* ---------- player panels ---------- */
 .pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
 .ppanel{border:1px solid rgba(176,141,63,.3);padding:12px;border-radius:2px;background:rgba(20,16,10,.6)}
