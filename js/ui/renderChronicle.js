@@ -3,6 +3,7 @@ import { TONES, TONE_GLOSS, EPILOGUE_QUESTIONS } from '../data/index.js';
 import { State } from '../engine/state.js';
 import { show } from './screens.js';
 import { faceUp } from '../engine/rules.js';
+import { liveToggleStrike } from '../sync/liveActions.js';
 
 /* ---------------- the chronicle ---------------- */
 export function viewChronicle(interim){
@@ -81,6 +82,10 @@ export function renderChronicle(interim){
     <p class="small muted center" style="margin-top:8px;font-style:italic">Anything stricken from the record never was. No questions asked; no reasons owed.</p>`;
 }
 export function toggleStrike(gi, interim){
+  if(State.onlineRoomCode){
+    liveToggleStrike(State.onlineRoomCode, gi).catch(err=>alert(err.message));
+    return; // the onSnapshot listener re-renders once the write lands
+  }
   State.G.journal[gi].struck = !State.G.journal[gi].struck;
   renderChronicle(interim);
 }

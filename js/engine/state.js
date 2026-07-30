@@ -8,5 +8,6 @@ export const State = {
   G: null,          // the whole game-in-progress object
   pendingHook: null, // hook chosen on the Incident screen, before players are set
   secretSel: [],     // omen indices picked while composing a Hidden Sin reveal
-  chronReturn: null  // screen id to return to after an interim Chronicle view
+  chronReturn: null, // screen id to return to after an interim Chronicle view
+  onlineRoomCode: null // non-null while playing in a synced Firebase room; null in local hotseat mode
 };

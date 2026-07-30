@@ -19,5 +19,5 @@ export function renderTopbar(){
   $('tb-act').textContent = G.act<=3 ? `${ACT_NAMES[G.act]} — ${G.hook.title}` : 'The Chronicle';
   const counts = actToneCounts();
   $('tb-tones').innerHTML = TONES.map(t=>`<span class="tone count ${t}" title="${t} this act">${counts[t]}</span>`).join('');
-  mirrorState(); // Stage 2 shadow write — see js/sync/rooms.js. Does not affect rendering.
+  if(!State.onlineRoomCode) mirrorState(); // Stage 2 shadow write, hotseat mode only — real sync (js/sync/liveActions.js) handles online rooms
 }

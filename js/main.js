@@ -14,6 +14,16 @@ import { viewChronicle, returnFromChronicle, toggleStrike, showRules,
          closeOverlay, initOverlayDismiss } from './ui/renderChronicle.js';
 import { copyChronicle, downloadChronicle } from './chronicle/markdown.js';
 import { ensureSignedIn } from './sync/auth.js';
+import {
+  showOnlineEntry, onlineCreateRoom, onlineJoinRoom, leaveOnlineRoom, tryAutoRejoin,
+  onlineBeginTale, onlineSaveArchSetup, onlineFinishVictim,
+  onlineStartScene, onlineTradeOmen, onlineForfeitScene, onlineBeginClose,
+  onlinePickSceneCard, onlinePickArch, onlineBeginScene, routeAndRenderCurrent,
+  onlineStartContrib, onlinePickContribScene, onlinePickContribOmen, onlineCancelContrib,
+  onlineSetContribHow, onlineSetSceneHappened, onlineSetSecretAnswer,
+  onlineConfirmContrib, onlineEndScene, onlineApplyResolve,
+  onlineToggleSecretOmen, onlineConfirmSecret
+} from './ui/online.js';
 
 Object.assign(window, {
   show, chooseHook, renderPlayerInputs, confirmPlayers, beginArchSetup, saveArchSetup, finishVictim,
@@ -22,11 +32,21 @@ Object.assign(window, {
   confirmContrib, cancelContrib, setContribHow, setSceneHappened,
   endScene, applyResolve, toggleSecretOmen, confirmSecret,
   viewChronicle, returnFromChronicle, toggleStrike, showRules, closeOverlay,
-  copyChronicle, downloadChronicle
+  copyChronicle, downloadChronicle,
+  showOnlineEntry, onlineCreateRoom, onlineJoinRoom, leaveOnlineRoom,
+  onlineBeginTale, onlineSaveArchSetup, onlineFinishVictim,
+  onlineStartScene, onlineTradeOmen, onlineForfeitScene, onlineBeginClose,
+  onlinePickSceneCard, onlinePickArch, onlineBeginScene, routeAndRenderCurrent,
+  onlineStartContrib, onlinePickContribScene, onlinePickContribOmen, onlineCancelContrib,
+  onlineSetContribHow, onlineSetSceneHappened, onlineSetSecretAnswer,
+  onlineConfirmContrib, onlineEndScene, onlineApplyResolve,
+  onlineToggleSecretOmen, onlineConfirmSecret
 });
 
 /* ---------------- init ---------------- */
 renderHooks();
 renderPlayerInputs();
 initOverlayDismiss();
-ensureSignedIn().catch(err => console.warn('[sync] anonymous sign-in failed', err));
+ensureSignedIn()
+  .then(() => tryAutoRejoin())
+  .catch(err => console.warn('[sync] anonymous sign-in failed', err));

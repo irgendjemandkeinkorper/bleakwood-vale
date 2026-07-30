@@ -33,7 +33,8 @@
       <div class="m-credit">A gothic re-imagining after the design of <em>Tall Pines</em> by Miles Gaborit.<br>
       All card text herein is original. For 1–6 storytellers, about half an hour each.</div>
       <div class="btnrow" style="justify-content:center;margin-top:28px">
-        <button class="primary" onclick="show('scr-hook')">Begin the Tale</button>
+        <button class="primary" onclick="show('scr-hook')">Begin the Tale (this screen)</button>
+        <button class="primary" onclick="showOnlineEntry()">Play Online</button>
         <button onclick="showRules()">How to Play</button>
       </div>
       <div class="notice" style="max-width:620px;margin:26px auto 0;text-align:left">
@@ -43,6 +44,12 @@
       </div>
     </div>
   </div>
+
+  <!-- ============ PLAY ONLINE: ENTRY ============ -->
+  <div class="screen" id="scr-online-entry"></div>
+
+  <!-- ============ PLAY ONLINE: LOBBY ============ -->
+  <div class="screen" id="scr-online-lobby"></div>
 
   <!-- ============ HOOK SELECT ============ -->
   <div class="screen" id="scr-hook">
