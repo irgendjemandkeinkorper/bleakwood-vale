@@ -189,19 +189,24 @@ function routeAndRender(room){
 function renderOnlineLobby(room){
   const uid = getUid();
   const isHost = uid===room.hostUid;
+  const seatCount = room.players.length;
+  const emptySeats = Math.max(0, 6-seatCount);
   $('scr-online-lobby').innerHTML = `
     <h2 class="center">The Table Gathers</h2>
     <div class="ornament">❦</div>
     <div class="panel" style="max-width:640px;margin:0 auto">
-      <p class="small muted">${esc(room.hook.title)}</p>
+      <p class="small" style="color:var(--gold)">${esc(room.hook.title)}</p>
+      <p class="small muted">${esc(room.hook.epigraph)}</p>
       <p class="center" style="margin:14px 0">
         <span class="sc" style="color:var(--gold);font-size:.85rem;letter-spacing:.15em">ROOM CODE</span><br>
         <span style="font-size:2.2rem;letter-spacing:.3em;color:#eddfba">${esc(State.onlineRoomCode)}</span>
       </p>
-      <p class="small muted center">Share this code — everyone else joins with it from “Play Online.”</p>
-      <h3 style="color:var(--gold);margin-top:18px">Seated so far</h3>
+      <p class="center"><button class="ghost" id="btn-copy-link" onclick="onlineCopyRoomLink()">Copy invite link</button></p>
+      <p class="small muted center">Share the code or link — everyone else joins from “Play Online.”</p>
+      <h3 style="color:var(--gold);margin-top:18px">Seated (${seatCount} of 6)</h3>
       <div class="btnrow">
         ${room.players.map((p,i)=>`<span class="pill">${i===0?'👑 ':''}${esc(p.name)}${p.uid===uid?' (you)':''}</span>`).join('')}
+        ${Array.from({length:emptySeats}).map(()=>`<span class="pill" style="opacity:.4">empty seat</span>`).join('')}
       </div>
       <div class="btnrow" style="margin-top:18px;justify-content:center">
         ${isHost
@@ -210,6 +215,16 @@ function renderOnlineLobby(room){
         <button class="ghost" onclick="leaveOnlineRoom()">Leave</button>
       </div>
     </div>`;
+}
+export async function onlineCopyRoomLink(){
+  const url = location.origin + location.pathname + '?room=' + State.onlineRoomCode;
+  const btn = $('btn-copy-link');
+  try {
+    await navigator.clipboard.writeText(url);
+    if(btn){ const orig = btn.textContent; btn.textContent = 'Copied!'; setTimeout(()=>{ if(btn.isConnected) btn.textContent = orig; }, 1800); }
+  } catch(err) {
+    fail(new Error('Could not copy automatically — the link is: ' + url));
+  }
 }
 export async function onlineBeginTale(){
   try{ await liveBeginTale(State.onlineRoomCode); } catch(err){ fail(err); }
@@ -220,6 +235,7 @@ function renderOnlineArchSetup(room){
   const i = room.archIdx, a = room.archetypes[i];
   const answerer = room.players[i % room.players.length];
   const isMe = mySeatIndex(room) === (i % room.players.length);
+  const showForm = isMe || draft.answeringForAbsent;
   $('scr-archsetup').innerHTML = `
     <p class="center muted sc" style="letter-spacing:.2em">ESTABLISHING THE DEAD — QUESTION ${ROMAN[i+1]} OF VI</p>
     <div class="ornament">❦</div>
@@ -233,17 +249,21 @@ function renderOnlineArchSetup(room){
         <div class="small" style="margin-top:8px;color:var(--blood)">${toneBadge(a.sides[0].tone)} <span style="color:var(--ink-soft)">— ${esc(a.sides[0].cond)} flip this card.</span></div>
       </div>
       <div class="panel">
-        ${isMe ? `
-          <p class="small muted">Answer in character, or plainly. The answer becomes a fact about the Victim and about this archetype.</p>
+        ${showForm ? `
+          <p class="small muted">${isMe ? 'Answer in character, or plainly. The answer becomes a fact about the Victim and about this archetype.' : `Answering on behalf of ${esc(answerer.name)}, since they’re away.`}</p>
           <label class="fld">Name this archetype</label>
           <input type="text" id="arch-name" placeholder="e.g. Dr. Ambrose Vane">
           <label class="fld">The answer</label>
           <textarea id="arch-answer" placeholder="What is established…"></textarea>
           <div class="btnrow"><button class="primary" onclick="onlineSaveArchSetup()">${i<5?'Next Question':'To the Victim'}</button></div>
-        ` : `<p class="small muted center">Waiting on ${esc(answerer.name)} to answer…</p>`}
+        ` : `
+          <p class="small muted center">Waiting on ${esc(answerer.name)} to answer…</p>
+          <p class="center"><button class="ghost" onclick="onlineAnswerForAbsent()">Answer for them, if they’re away</button></p>
+        `}
       </div>
     </div>`;
 }
+export function onlineAnswerForAbsent(){ draft.answeringForAbsent = true; renderOnlineArchSetup(State.G); }
 export async function onlineSaveArchSetup(){
   try{
     const name = $('arch-name').value, answer = $('arch-answer').value;

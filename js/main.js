@@ -26,7 +26,8 @@ import {
   onlineStartContrib, onlinePickContribScene, onlinePickContribOmen, onlineCancelContrib,
   onlineSetContribHow, onlineSetSceneHappened, onlineSetSecretAnswer,
   onlineConfirmContrib, onlineEndScene, onlineApplyResolve,
-  onlineToggleSecretOmen, onlineConfirmSecret
+  onlineToggleSecretOmen, onlineConfirmSecret,
+  onlineAnswerForAbsent, onlineCopyRoomLink
 } from './ui/online.js';
 
 Object.assign(window, {
@@ -46,7 +47,8 @@ Object.assign(window, {
   onlineStartContrib, onlinePickContribScene, onlinePickContribOmen, onlineCancelContrib,
   onlineSetContribHow, onlineSetSceneHappened, onlineSetSecretAnswer,
   onlineConfirmContrib, onlineEndScene, onlineApplyResolve,
-  onlineToggleSecretOmen, onlineConfirmSecret
+  onlineToggleSecretOmen, onlineConfirmSecret,
+  onlineAnswerForAbsent, onlineCopyRoomLink
 });
 
 /* ---------------- init ---------------- */

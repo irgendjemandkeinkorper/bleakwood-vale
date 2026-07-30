@@ -55,7 +55,16 @@ export async function liveSaveArchSetup(code, name, answer){
     const room = await readRoom(t, code);
     if(room.phase !== 'archsetup') throw new Error('Not answering questions right now.');
     const answerer = room.players[room.archIdx % room.players.length];
-    if(mySeat(room) !== room.players.indexOf(answerer)) throw new Error('Not your question to answer.');
+    // Deliberately not gated to the assigned answerer's uid: Archetypes are
+    // never owned by one player even in the tabletop original ("No player
+    // is the sole owner or controller of any single Protagonist"), and
+    // without this, a disconnected player stuck as "current answerer" would
+    // deadlock the whole game — archIdx can only ever be advanced by this
+    // function. Any seated player may answer on their behalf; the UI
+    // (js/ui/online.js) still shows the input to the assigned answerer by
+    // default and only reveals it to others via an explicit "answer for
+    // them" action, so this doesn't change normal-flow turn-taking.
+    if(mySeat(room) < 0) throw new Error('Not seated at this table.');
     const a = room.archetypes[room.archIdx];
     a.name = (name||'').trim() || a.role;
     a.setupA = (answer||'').trim() || '(left unspoken)';
