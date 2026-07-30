@@ -23,5 +23,13 @@ export const OMENS = [
   {glyph:'☻', title:'A Doll with Real Teeth', line:'Somebody’s teeth.'},
   {glyph:'⋯', title:'The Salt Line, Broken', line:'Scattered by a deliberate foot.'},
   {glyph:'⚓', title:'A Ship in a Bottle', line:'Its little sails rigged in mourning-black.'},
-  {glyph:'☂', title:'The Weeping Wall', line:'The damp has made a face of it. The face is familiar.'}
+  {glyph:'☂', title:'The Weeping Wall', line:'The damp has made a face of it. The face is familiar.'},
+  {glyph:'⚰', title:'A Child-Sized Coffin', line:'Empty. The undertaker swears he never built it.'},
+  {glyph:'✃', title:'A Lock of Hair, Cut While Sleeping', line:'Wound round a ring that isn’t the wearer’s own.'},
+  {glyph:'✝', title:'An Upturned Crucifix', line:'Nailed above the door, though no one recalls turning it.'},
+  {glyph:'‡', title:'A Mourning Card, Pre-Printed', line:'The date of death left blank. Someone already knows whose name goes there.'},
+  {glyph:'⚕', title:'A Trepanning Kit, One Instrument Short', line:'The case still smells of camphor.'},
+  {glyph:'↺', title:'A Music Box, Wound Backward', line:'It plays the tune in reverse, and slower with each turn.'},
+  {glyph:'⚜', title:'The Family Signet, Melted Down', line:'Reforged into something that is not a ring.'},
+  {glyph:'✙', title:'A Widow’s Veil, Bought Too Soon', line:'Purchased the week before the death, not after.'}
 ];
