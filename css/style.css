@@ -264,12 +264,12 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
 .arch-flip.selectable:hover .arch{border-color:var(--gold);box-shadow:0 0 10px rgba(176,141,63,.2)}
 .arch-flip.selected .arch{border-color:var(--blood-bright);box-shadow:0 0 0 1px var(--blood-bright)}
 .arch-flip-inner{
-  position:relative;min-height:126px;
+  position:relative;min-height:150px;
   transform-style:preserve-3d;
   transition:transform .6s cubic-bezier(.4,.1,.2,1);
 }
 .arch-flip.peeking .arch-flip-inner{transform:rotateY(180deg)}
-.arch-face{position:absolute;inset:0;backface-visibility:hidden}
+.arch-face{position:absolute;inset:0;transform:rotateY(0deg);-webkit-backface-visibility:hidden;backface-visibility:hidden}
 .arch-face.arch-back{transform:rotateY(180deg)}
 .flip-btn{
   position:absolute;top:6px;right:6px;z-index:3;
@@ -319,6 +319,148 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
 }
 .minicard .mc-t{font-family:'IM Fell English SC',serif;font-size:.85rem}
 .minicard.omen{background:#241c26;color:#d9cfe0;border-color:#5c4a63}
+
+/* ---------- scene in play ---------- */
+.scene-tracker{
+  position:relative;overflow:hidden;margin:10px 0 20px;
+  border:1px solid rgba(176,141,63,.55);border-radius:3px;
+  background:
+    radial-gradient(ellipse 70% 85% at 15% 105%,rgba(61,95,78,.22),transparent 70%),
+    radial-gradient(ellipse 45% 55% at 100% 0,rgba(124,31,43,.09),transparent 75%),
+    linear-gradient(145deg,rgba(13,22,18,.98),rgba(10,14,12,.98));
+  box-shadow:0 14px 36px rgba(0,0,0,.42),inset 0 0 45px rgba(0,0,0,.25);
+}
+.scene-tracker::before{
+  content:'';position:absolute;inset:0;pointer-events:none;opacity:.18;
+  background:repeating-linear-gradient(96deg,transparent 0,transparent 82px,rgba(176,141,63,.06) 83px,transparent 84px);
+}
+.scene-tracker.resolving{border-color:rgba(165,42,56,.75);box-shadow:0 14px 36px rgba(0,0,0,.42),0 0 24px rgba(165,42,56,.08)}
+.scene-tracker-head{
+  position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;
+  padding:20px 22px 16px;border-bottom:1px solid rgba(176,141,63,.22);
+}
+.scene-tracker-kicker{
+  color:var(--blood-bright);font-family:'IM Fell English SC',serif;font-size:.74rem;
+  letter-spacing:.22em;text-transform:uppercase;margin-bottom:3px;
+}
+.scene-tracker-head h2{color:#eddfba;font-size:1.85rem;line-height:1.08}
+.scene-context{color:#9f9277;font-size:.84rem;margin-top:5px}
+.scene-card-meter{display:grid;grid-template-columns:auto auto;gap:1px 9px;align-items:center;flex:none;text-align:right}
+.scene-meter-label{grid-column:1/-1;color:#918364;font-family:'IM Fell English SC',serif;font-size:.67rem;letter-spacing:.14em;text-transform:uppercase}
+.scene-meter-dots{display:flex;gap:5px}
+.scene-meter-dots i{display:block;width:17px;height:6px;border:1px solid var(--gold-soft);border-radius:1px;background:transparent}
+.scene-meter-dots i.filled{background:var(--gold);border-color:var(--gold);box-shadow:0 0 7px rgba(176,141,63,.35)}
+.scene-card-meter strong{color:#d8c99f;font-size:.82rem;font-weight:normal}
+.scene-brief{
+  position:relative;display:flex;gap:34px;align-items:center;padding:9px 22px;
+  background:rgba(0,0,0,.18);border-bottom:1px solid rgba(176,141,63,.15);
+}
+.scene-brief>span{display:flex;gap:7px;align-items:baseline}
+.scene-brief small{font-family:'IM Fell English SC',serif;color:#7f735b;font-size:.68rem;letter-spacing:.11em;text-transform:uppercase}
+.scene-brief strong{color:#d9ccb0;font-size:.9rem;font-weight:normal}
+.scene-opening{
+  position:relative;margin:14px 22px 0;padding:10px 14px 10px 18px;
+  border-left:2px solid var(--gold);background:rgba(176,141,63,.055);color:#e3d7b8;
+  font-size:.98rem;font-style:italic;line-height:1.48;
+}
+.scene-opening span,.scene-record>span{
+  display:block;color:var(--gold);font-family:'IM Fell English SC',serif;font-size:.67rem;
+  font-style:normal;letter-spacing:.16em;text-transform:uppercase;margin-bottom:3px;
+}
+.scene-table{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,270px);gap:15px;padding:18px 22px}
+.scene-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-width:0}
+.scene-slot{min-width:0;display:flex;flex-direction:column}
+.scene-slot-head{
+  min-height:25px;display:flex;justify-content:space-between;gap:7px;padding:0 2px;
+  color:#817459;font-family:'IM Fell English SC',serif;font-size:.62rem;letter-spacing:.09em;text-transform:uppercase;
+}
+.scene-slot-head span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+.scene-table-card{flex:1;min-height:226px;padding:15px 14px 13px}
+.scene-table-card .c-title{font-size:1.05rem}
+.scene-table-card .c-prompt{font-size:.9rem;line-height:1.38}
+.scene-table-card.omen .glyph{font-size:1.45rem}
+.scene-card-tone{margin-top:10px}
+.scene-close-element{color:var(--blood);line-height:1.35}
+.scene-slot.empty{
+  min-height:251px;padding:0 13px 18px;border:1px dashed rgba(176,141,63,.3);border-radius:2px;
+  background:rgba(3,7,5,.28);align-items:center;text-align:center;justify-content:flex-start;
+}
+.scene-slot.empty .scene-slot-head{align-self:stretch;margin:0 -11px;padding:0 2px;align-items:flex-start}
+.scene-slot-empty-mark{
+  width:48px;height:48px;margin:auto 0 8px;border:1px solid rgba(176,141,63,.3);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:rgba(176,141,63,.55);font-size:1.45rem;
+}
+.scene-slot.empty p{max-width:150px;margin:0 auto auto;color:#756a54;font-size:.78rem;line-height:1.35}
+.scene-manifest{
+  margin:7px 3px 0;padding:7px 9px;border-left:2px solid rgba(176,141,63,.45);
+  background:rgba(0,0,0,.18);color:#cfc2a2;font-size:.78rem;line-height:1.36;
+}
+.scene-manifest>span{display:block;color:#8f805f;font-family:'IM Fell English SC',serif;font-size:.61rem;letter-spacing:.11em;text-transform:uppercase}
+.scene-lead-card{padding:0 0 10px;border-left:1px solid rgba(176,141,63,.18);padding-left:15px;min-width:0}
+.scene-lead-label{min-height:25px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;color:#817459;font-family:'IM Fell English SC',serif;font-size:.62rem;letter-spacing:.09em;text-transform:uppercase}
+.scene-lead-label .tone{font-size:.58rem;padding:1px 7px;letter-spacing:.08em}
+.scene-lead-card .arch-flip{animation:none}
+.scene-lead-card .arch-flip-inner{min-height:226px;transform:none;transform-style:flat;transition:none}
+.scene-lead-card .arch-flip.peeking .arch-flip-inner{transform:none}
+.scene-lead-card .arch-back{visibility:hidden;transform:none}
+.scene-lead-card .arch-flip.peeking .arch-front{visibility:hidden}
+.scene-lead-card .arch-flip.peeking .arch-back{visibility:visible}
+.scene-lead-card>p{color:#81765d;font-size:.75rem;line-height:1.35;margin:8px 3px 0}
+.scene-tone-tracker{
+  position:relative;display:grid;grid-template-columns:minmax(145px,.7fr) minmax(0,2fr);gap:12px 20px;
+  align-items:center;padding:12px 22px;border-top:1px solid rgba(176,141,63,.2);border-bottom:1px solid rgba(176,141,63,.14);
+  background:rgba(2,5,4,.28);
+}
+.scene-tone-copy>span{display:block;color:var(--gold);font-family:'IM Fell English SC',serif;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase}
+.scene-tone-copy small{display:block;color:#776d57;font-size:.7rem;line-height:1.25;margin-top:2px}
+.scene-tone-sources{display:flex;gap:7px;flex-wrap:wrap}
+.scene-tone-sources>span{display:flex;align-items:center;gap:5px;padding-right:8px;border-right:1px solid rgba(176,141,63,.15)}
+.scene-tone-sources>span:last-child{border-right:none}
+.scene-tone-sources small{color:#9b8e72;font-size:.68rem;line-height:1.2}
+.scene-tone-sources .tone{font-size:.61rem;padding:1px 7px}
+.scene-omen-note{grid-column:2;color:#8f8198;font-size:.7rem}
+.scene-player-rail{position:relative;display:flex;gap:7px;flex-wrap:wrap;padding:12px 22px 16px}
+.scene-player{
+  display:flex;align-items:baseline;gap:6px;padding:4px 9px;border:1px solid rgba(176,141,63,.22);
+  border-radius:12px;background:rgba(0,0,0,.16);color:#b9ac90;font-size:.75rem;
+}
+.scene-player strong{font-weight:normal;color:#ddd0b3}
+.scene-player small{font-size:.66rem;color:#81765e}
+.scene-player.directing{border-color:rgba(165,42,56,.65)}
+.scene-player.directing small{color:#c1848c}
+.scene-player.played{border-color:rgba(176,141,63,.62)}
+.scene-player.played small{color:#bda25f}
+.scene-player.ready{border-color:rgba(61,95,78,.85)}
+.scene-player.ready small{color:#84aa97}
+.scene-record{position:relative;margin:0 22px 18px;padding:10px 14px;border-left:2px solid var(--blood-bright);background:rgba(124,31,43,.08);color:#d8cdb4}
+.scene-record p{font-size:.88rem;line-height:1.45}
+.scene-action-panel{border-color:rgba(176,141,63,.48)}
+.scene-action-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.scene-action-head .sc{color:var(--gold);font-size:1.05rem}
+.scene-action-head p{color:#8f8268;font-size:.78rem;margin-top:2px}
+
+@media (max-width:880px){
+  .scene-table{grid-template-columns:1fr}
+  .scene-lead-card{border-left:none;border-top:1px solid rgba(176,141,63,.18);padding:14px 0 0;max-width:430px;width:100%}
+}
+@media (max-width:700px){
+  .scene-tracker-head{padding:16px;gap:12px}
+  .scene-tracker-head h2{font-size:1.5rem}
+  .scene-brief,.scene-player-rail{padding-left:16px;padding-right:16px}
+  .scene-opening{margin-left:16px;margin-right:16px}
+  .scene-table{padding:16px}
+  .scene-slots{display:flex;overflow-x:auto;scroll-snap-type:x proximity;padding:0 0 8px;overscroll-behavior-inline:contain}
+  .scene-slot{flex:0 0 82%;max-width:285px;scroll-snap-align:start}
+  .scene-tone-tracker{grid-template-columns:1fr;padding:12px 16px}
+  .scene-omen-note{grid-column:1}
+}
+@media (max-width:480px){
+  .scene-tracker-head{flex-direction:column}
+  .scene-card-meter{text-align:left}
+  .scene-brief{align-items:flex-start;gap:7px;flex-direction:column}
+  .scene-brief>span{width:100%;justify-content:space-between}
+  .scene-action-head{flex-direction:column;gap:7px}
+}
 
 /* ---------- milestone rail (hub) ---------- */
 .ms-rail{border-color:rgba(176,141,63,.3)}
@@ -425,3 +567,211 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
 .masthead .m-sub{font-style:italic;color:#b3a687;font-size:1.1rem}
 .masthead .m-credit{color:#7d7052;font-size:.85rem;margin-top:14px;font-style:italic}
 @media (max-width:640px){ .masthead h1{font-size:2.2rem} h1{font-size:1.9rem} }
+
+/* ---------- game art & locked tale style ---------- */
+.game-art{
+  position:relative;overflow:hidden;isolation:isolate;
+  border:1px solid rgba(176,141,63,.45);border-radius:2px;
+  background:
+    radial-gradient(circle at 50% 34%,rgba(176,141,63,.16),transparent 36%),
+    linear-gradient(145deg,#1c261f,#090d0b);
+}
+.game-art>img{position:absolute;inset:0;z-index:1;width:100%;height:100%;display:block;object-fit:cover}
+.game-art-fallback{
+  position:absolute;inset:0;display:grid;place-items:center;padding:10px;text-align:center;
+  color:#8f8268;font-family:'IM Fell English SC',serif;font-size:.72rem;line-height:1.25;
+}
+.game-art.missing{border-style:dashed}
+
+.art-style-picker{border:0;margin:18px 0 4px;min-width:0}
+.art-style-picker legend{color:var(--gold);font-family:'IM Fell English SC',serif;font-size:1.02rem;letter-spacing:.05em}
+.art-style-picker>p{color:#9a8c6f;font-size:.82rem;margin:2px 0 10px;line-height:1.35}
+.art-style-options{display:grid;gap:10px}
+.art-style-option{display:block;position:relative;cursor:pointer;min-width:0}
+.art-style-option>input{
+  position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;
+}
+.art-style-choice{
+  display:grid;grid-template-columns:104px minmax(0,1fr);gap:12px;align-items:stretch;
+  min-height:138px;padding:7px;border:1px solid rgba(176,141,63,.35);border-radius:3px;
+  background:rgba(5,8,7,.5);transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.art-style-option:hover .art-style-choice{border-color:var(--gold);transform:translateY(-1px)}
+.art-style-option>input:focus-visible+.art-style-choice{outline:2px solid var(--moon);outline-offset:2px}
+.art-style-option>input:checked+.art-style-choice{
+  border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 20px rgba(176,141,63,.18);
+  background:linear-gradient(100deg,rgba(176,141,63,.12),rgba(5,8,7,.62));
+}
+.art-style-preview{width:100%;height:100%;min-height:122px;aspect-ratio:3/4}
+.art-style-copy{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:5px 5px 5px 0}
+.art-style-copy strong{color:#eadcb8;font-family:'IM Fell English SC',serif;font-size:1rem;font-weight:normal;line-height:1.2}
+.art-style-copy small{display:block;color:#a99b7d;font-size:.76rem;line-height:1.35;margin-top:4px}
+.art-style-copy em{display:block;color:var(--gold);font-size:.72rem;margin-top:auto;padding-top:8px}
+.art-style-option>input:checked+.art-style-choice .art-style-copy em::before{content:'✓ ';color:#d9c67f}
+.art-style-error{min-height:1.2em;color:#dba3a8!important;margin-top:8px!important}
+
+/* Artwork joins the cards themselves once the table has chosen a style. */
+.arch{display:grid;grid-template-columns:74px minmax(0,1fr);gap:10px;align-items:stretch}
+.arch-card-art{width:74px;min-height:98px;aspect-ratio:3/4;align-self:stretch}
+.arch-card-copy{min-width:0;align-self:center}
+.arch.mini{display:block}
+.omen-card-art{width:100%;height:112px;margin:7px 0 8px;border-color:#5c4a63}
+.scene-omen-art{height:86px;margin:7px 0 6px}
+.setup-card-layout{
+  display:grid;grid-template-columns:minmax(170px,210px) minmax(0,1fr);gap:16px;align-items:stretch;
+}
+.setup-card-art{width:100%;height:100%;min-height:285px;aspect-ratio:3/4}
+.victim-setup-layout{
+  display:grid;grid-template-columns:minmax(210px,280px) minmax(0,1fr);gap:20px;
+  max-width:900px;margin:0 auto;align-items:start;
+}
+.victim-setup-art{width:100%;aspect-ratio:3/4;min-height:320px}
+.incident-intro-layout{display:grid;grid-template-columns:180px minmax(0,1fr);gap:18px;align-items:center}
+.incident-intro-art{width:100%;aspect-ratio:3/4}
+.lobby-incident{display:grid;grid-template-columns:110px minmax(0,1fr);gap:14px;align-items:center}
+.lobby-incident-art{width:110px;aspect-ratio:3/4}
+
+/* ---------- whose move / hand clarity ---------- */
+.turn-board{padding:20px}
+.turn-board-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}
+.turn-board-head h3{color:#eddfba;font-size:1.35rem;line-height:1.15;margin-top:2px}
+.turn-kicker{
+  display:block;color:var(--blood-bright);font-family:'IM Fell English SC',serif;
+  font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;
+}
+.turn-guidance{max-width:790px;color:#cbbd9d;font-size:.9rem;line-height:1.4;margin:10px 0 14px}
+.turn-seats{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:9px}
+.turn-seat{
+  position:relative;display:flex;flex-direction:column;gap:7px;padding:11px 12px;
+  border:1px solid rgba(176,141,63,.28);border-left-width:3px;border-radius:2px;
+  background:rgba(4,8,6,.4);min-width:0;
+}
+.turn-seat.ready{border-left-color:#79a48e;background:linear-gradient(105deg,rgba(61,95,78,.22),rgba(4,8,6,.45))}
+.turn-seat.trade{border-left-color:var(--gold)}
+.turn-seat.blocked{border-left-color:var(--blood-bright)}
+.turn-seat.done{border-left-color:#675f50;opacity:.62}
+.turn-seat.mine{box-shadow:0 0 0 1px rgba(199,214,204,.55),0 0 18px rgba(199,214,204,.1)}
+.turn-seat.mine::after{
+  content:'YOUR SEAT';position:absolute;top:-8px;right:8px;padding:1px 7px;
+  background:#16231d;border:1px solid #668b78;color:#b9d2c5;border-radius:8px;
+  font-family:'IM Fell English SC',serif;font-size:.54rem;letter-spacing:.12em;
+}
+.turn-seat-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.turn-seat-head strong{color:#e8dcc0;font-family:'IM Fell English SC',serif;font-weight:normal;line-height:1.1}
+.turn-seat-head span{color:#8fb49f;font-size:.7rem;text-align:right;line-height:1.2}
+.turn-seat.trade .turn-seat-head span{color:#d2b36a}
+.turn-seat.blocked .turn-seat-head span{color:#d58d96}
+.turn-seat.done .turn-seat-head span{color:#918672}
+.turn-seat>p{color:#96896f;font-size:.75rem;line-height:1.3}
+.turn-seat-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:2px}
+.turn-seat-actions button{padding:6px 11px;font-size:.76rem}
+.personal-hand{border-color:rgba(199,214,204,.4)}
+.personal-hand>summary{color:#c7d6cc}
+.hand-section-label{
+  color:var(--gold);font-family:'IM Fell English SC',serif;font-size:.76rem;
+  letter-spacing:.11em;text-transform:uppercase;margin:13px 0 1px;
+}
+.hand-cardgrid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.held-card{display:flex;flex-direction:column;gap:7px;min-width:0}
+.held-card>.card{flex:1}
+.held-card>button{width:100%;font-size:.76rem}
+.ppanel{transition:border-color .2s ease,box-shadow .2s ease}
+
+/* ---------- cards arriving at the scene ---------- */
+.scene-arrival-callout{
+  position:fixed;z-index:90;right:22px;bottom:22px;max-width:min(360px,calc(100% - 36px));
+  padding:9px 13px;border:1px solid rgba(176,141,63,.75);border-radius:2px;
+  background:rgba(10,14,12,.96);box-shadow:0 6px 20px rgba(0,0,0,.55);
+  color:#cfc2a2;font-size:.78rem;pointer-events:none;opacity:0;
+}
+.scene-arrival-callout span{color:var(--moon)}
+.scene-arrival-callout strong{color:#ead79f;font-weight:normal}
+@media (prefers-reduced-motion: no-preference){
+  @keyframes sceneCardDeal{
+    0%{opacity:0;transform:translateY(-38px) rotate(-3.5deg) scale(.88);filter:blur(3px)}
+    58%{opacity:1;transform:translateY(4px) rotate(.5deg) scale(1.015);filter:blur(0)}
+    78%{transform:translateY(-2px) rotate(-.2deg) scale(.995)}
+    100%{opacity:1;transform:none;filter:none}
+  }
+  @keyframes sceneSlotGlow{
+    0%,100%{filter:none}
+    42%{filter:drop-shadow(0 0 13px rgba(218,190,112,.62))}
+  }
+  @keyframes sceneArrivalCallout{
+    0%{opacity:0;transform:translateY(-8px)}
+    12%,70%{opacity:1;transform:none}
+    100%{opacity:0;transform:translateY(-4px)}
+  }
+  @keyframes handFocus{
+    0%,100%{box-shadow:none}
+    24%,72%{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 0 26px rgba(176,141,63,.23)}
+  }
+  .scene-slot.dealt-in{animation:sceneSlotGlow 1.15s ease both}
+  .scene-slot.dealt-in .scene-table-card{animation:sceneCardDeal .82s cubic-bezier(.16,.74,.22,1.04) both}
+  .scene-slot.dealt-in .scene-manifest{animation:sceneCardDeal .72s .14s cubic-bezier(.2,.7,.2,1) both}
+  .scene-arrival-callout{animation:sceneArrivalCallout 3.1s ease both}
+  .hand-focus{animation:handFocus 1.35s ease both}
+}
+
+/* ---------- Gallery: fluid two-sided card preview ---------- */
+.gallery-flip{isolation:isolate}
+.gallery-flip-inner{
+  position:absolute;inset:0;
+}
+.gallery-face{
+  position:absolute;inset:0;overflow:hidden;background:var(--paper);
+  opacity:1;transform:translateX(0) rotate(0) scale(1);
+  transition:opacity .28s ease,transform .54s cubic-bezier(.2,.72,.2,1),filter .42s ease;
+  will-change:opacity,transform;
+}
+.gallery-face.gallery-back{opacity:0;transform:translateX(9%) rotate(1.5deg) scale(.94);filter:brightness(.72)}
+.gallery-flip.is-flipped .gallery-front{opacity:0;transform:translateX(-9%) rotate(-1.5deg) scale(.94);filter:brightness(.72)}
+.gallery-flip.is-flipped .gallery-back{opacity:1;transform:translateX(0) rotate(0) scale(1);filter:none}
+.gallery-face img{width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:1}
+.gallery-face-label{
+  position:absolute;z-index:2;left:8px;bottom:8px;padding:2px 7px;
+  border:1px solid rgba(239,222,181,.45);border-radius:9px;background:rgba(7,9,8,.78);
+  color:#eadfca;font-family:'IM Fell English SC',serif;font-size:.58rem;letter-spacing:.08em;
+}
+.gallery-flip-control{
+  position:absolute;z-index:4;right:7px;bottom:7px;display:flex;align-items:center;gap:4px;
+  padding:5px 8px;border-radius:12px;background:rgba(7,9,8,.88);color:#f0dfb3;
+  border-color:rgba(176,141,63,.8);font-size:.65rem;line-height:1;
+}
+.gallery-flip-control:hover{transform:translateY(-1px)}
+.gallery-face.g-missing{background:var(--paper)}
+.gallery-style-lock{
+  display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin:12px 0 2px;padding:8px 11px;
+  border-left:2px solid var(--gold);background:rgba(176,141,63,.07);
+}
+.gallery-style-lock span{color:#8f8268;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase}
+.gallery-style-lock strong{color:#e3d5b4;font-family:'IM Fell English SC',serif;font-weight:normal}
+.gallery-style-lock small{color:#8f8268;font-size:.72rem}
+
+@media (prefers-reduced-motion: reduce){
+  .art-style-choice,.gallery-face{transition:none}
+  .scene-slot.dealt-in,.scene-slot.dealt-in .scene-table-card,
+  .scene-slot.dealt-in .scene-manifest,.scene-arrival-callout,.hand-focus{animation:none}
+  .scene-arrival-callout{opacity:0}
+}
+
+@media (max-width:700px){
+  .turn-board{padding:16px}
+  .turn-board-head{flex-direction:column;gap:8px}
+  .turn-seats{grid-template-columns:1fr}
+  .setup-card-layout,.victim-setup-layout,.incident-intro-layout{grid-template-columns:1fr}
+  .setup-card-art,.victim-setup-art,.incident-intro-art{width:min(250px,78vw);min-height:0;margin:0 auto}
+  .scene-arrival-callout{right:18px;bottom:18px}
+}
+@media (max-width:430px){
+  .art-style-choice{grid-template-columns:82px minmax(0,1fr);min-height:116px}
+  .art-style-preview{min-height:100px}
+  .art-style-copy strong{font-size:.9rem}
+  .art-style-copy small{font-size:.7rem}
+  .arch{grid-template-columns:66px minmax(0,1fr);gap:8px}
+  .arch-card-art{width:66px;min-height:88px}
+  .gallery-flip-control span{display:none}
+  .gallery-flip-control{width:30px;height:30px;justify-content:center;border-radius:50%;padding:0;font-size:.85rem}
+  .lobby-incident{grid-template-columns:82px minmax(0,1fr)}
+  .lobby-incident-art{width:82px}
+}

@@ -4,6 +4,7 @@ import { State } from '../engine/state.js';
 import { show } from './screens.js';
 import { startAct } from './hub.js';
 import { hasSeenIntro } from '../engine/firstrun.js';
+import { artStylePickerHTML, archetypeArtHTML, hookArtHTML, victimArtHTML } from './art.js';
 
 /* ---------------- setup: hooks ---------------- */
 export function renderHooks(){
@@ -23,12 +24,14 @@ export function chooseHook(i){ State.pendingHook = HOOKS[i]; show('scr-players')
 /* ---------------- setup: players ---------------- */
 export function renderPlayerInputs(){
   const n = +$('pl-count').value;
+  const selectedStyle = document.querySelector('input[name="art-style"]:checked')?.value || null;
   let html='';
   for(let i=0;i<n;i++){
     html += `<label class="fld">Storyteller ${ROMAN[i+1]}</label>
              <input type="text" id="pl-name-${i}" placeholder="Name (optional)">`;
   }
   $('pl-names').innerHTML = html;
+  $('pl-art-style').innerHTML = State.pendingHook ? artStylePickerHTML(State.pendingHook.id,'art-style',selectedStyle) : '';
   $('pl-note').textContent =
     n===1 ? 'Solo mode: you will voice every archetype, play three scenes per act, and carry two Hidden Sins.' :
     n===2 ? 'Two storytellers: each of you begins two scenes per act.' :
@@ -36,13 +39,20 @@ export function renderPlayerInputs(){
 }
 export function confirmPlayers(){
   const n = +$('pl-count').value;
+  const artChoice = document.querySelector('input[name="art-style"]:checked');
+  if(!artChoice){
+    const error = $('art-style-error');
+    if(error) error.textContent = 'Choose Painterly Gothic or Tarot Gothic before lighting the candles.';
+    document.querySelector('.art-style-picker')?.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
   const players=[];
   for(let i=0;i<n;i++){
     const v = ($('pl-name-'+i).value||'').trim();
     players.push({name: v || `Storyteller ${ROMAN[i+1]}`, hand:[], omens:[], secrets:[], scenesLeft:0});
   }
   State.G = {
-    hook: State.pendingHook, players, act:0,
+    hook: State.pendingHook, artStyle:artChoice.value, players, act:0,
     archetypes: shuffle(ARCHETYPES).slice(0,6).map(a=>({...a, name:'', setupA:'', answeredBy:'', flipped:false})),
     victim:{name:'', facts:[]},
     sceneDeck:[], discardTones:[], omenDeck:[], omenRow:[],
@@ -50,6 +60,7 @@ export function confirmPlayers(){
     journal:[], current:null, archIdx:0, firstScenePlayer:null, closeDone:false
   };
   const G = State.G;
+  $('intro-art').innerHTML = hookArtHTML(G.hook,{className:'incident-intro-art'});
   $('intro-text').innerHTML = G.hook.intro;
   show('scr-intro');
 }
@@ -64,14 +75,17 @@ export function renderArchSetup(){
     <p class="center muted sc" style="letter-spacing:.2em">ESTABLISHING THE DEAD</p>
     ${progressDotsHTML(i, 6, `Question ${ROMAN[i+1]} of VI`)}
     <div class="ornament">❦</div>
-    <div style="max-width:640px;margin:0 auto">
-      <div class="card">
+    <div style="max-width:760px;margin:0 auto">
+      <div class="setup-card-layout">
+        ${archetypeArtHTML(a,0,{className:'setup-card-art'})}
+        <div class="card">
         <div class="c-kicker">Archetype</div>
         <div class="c-title" style="font-size:1.5rem">${a.role}</div>
         <div class="c-prompt">${a.flavor}</div>
         <hr class="rule" style="border-color:rgba(60,45,25,.3)">
         <div style="font-size:1.05rem">“${a.setup[G.hook.id]}”</div>
         <div class="small" style="margin-top:8px;color:var(--blood)">${toneBadge(a.sides[0].tone)} <span style="color:var(--ink-soft)">— ${esc(a.sides[0].cond)} flip this card.</span></div>
+        </div>
       </div>
       <div class="panel">
         <p class="small muted">${esc(answerer.name)} answers — in character, or plainly. The answer becomes a fact about the Victim and about this archetype.</p>
@@ -104,15 +118,18 @@ export function renderVictim(){
     <h2 class="center">The Victim</h2>
     <p class="center muted" style="max-width:640px;margin:6px auto">${G.hook.victimLine}</p>
     <div class="ornament">❦</div>
-    <div style="max-width:680px;margin:0 auto">
-      <div class="panel tight">
-        ${G.victim.facts.map(f=>`<p class="small" style="margin:6px 0"><span style="color:var(--gold)">${esc(f.role)}:</span> <span>${esc(f.a)}</span></p>`).join('')}
-      </div>
-      <div class="panel">
-        <label class="fld">Together, name the deceased</label>
-        <input type="text" id="victim-name" placeholder="This is usually the hardest part.">
-        <div class="btnrow">
-          <button class="primary" onclick="finishVictim()">Deal the Cards</button>
+    <div class="victim-setup-layout">
+      ${victimArtHTML(G.hook,{className:'victim-setup-art'})}
+      <div>
+        <div class="panel tight">
+          ${G.victim.facts.map(f=>`<p class="small" style="margin:6px 0"><span style="color:var(--gold)">${esc(f.role)}:</span> <span>${esc(f.a)}</span></p>`).join('')}
+        </div>
+        <div class="panel">
+          <label class="fld">Together, name the deceased</label>
+          <input type="text" id="victim-name" placeholder="This is usually the hardest part.">
+          <div class="btnrow">
+            <button class="primary" onclick="finishVictim()">Deal the Cards</button>
+          </div>
         </div>
       </div>
     </div>`;

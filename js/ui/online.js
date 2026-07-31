@@ -1,11 +1,12 @@
-import { $, esc, nl2br, toneBadge, ACT_NAMES, ROMAN, progressDotsHTML, actTrackHTML } from '../engine/utils.js';
+import { $, esc, toneBadge, ACT_NAMES, ROMAN, progressDotsHTML, actTrackHTML } from '../engine/utils.js';
 import { HOOKS, TONES } from '../data/index.js';
 import { State } from '../engine/state.js';
 import { show } from './screens.js';
-import { archCard, omenCard, sceneCardHTML, journalEntrySummaryHTML, sceneAnatomyDiagramHTML } from './cards.js';
+import { archCard, omenCard, sceneCardHTML, journalEntrySummaryHTML, sceneAnatomyDiagramHTML, sceneTrackerHTML } from './cards.js';
 import { faceUp, maxContrib, actToneCounts } from '../engine/rules.js';
 import { renderChronicle } from './renderChronicle.js';
 import { hasSeenIntro, markIntroSeen } from '../engine/firstrun.js';
+import { ART_STYLES, artStylePickerHTML, archetypeArtHTML, currentArtStyle, hookArtHTML, victimArtHTML } from './art.js';
 import { createRoom, joinRoom, subscribeRoom, unsubscribeRoom, subscribeMyPrivate, unsubscribeMyPrivate } from '../sync/liveRoom.js';
 import { getUid, ensureSignedIn } from '../sync/auth.js';
 import {
@@ -32,8 +33,20 @@ let lastClaimAttempt = -1;
 /* Timer for the delayed advance-after-close cascade; cleared whenever the
    underlying condition stops being true so it never fires stale. */
 let advanceTimer = null;
+let renderedScene = {signature:null, contributions:0};
 
 function clearAdvanceTimer(){ if(advanceTimer){ clearTimeout(advanceTimer); advanceTimer = null; } }
+
+function sceneAnimationSlot(room){
+  const c = room.current;
+  if(!c){ renderedScene = {signature:null,contributions:0}; return null; }
+  const signature = `${room.act}|${room.journal.length}|${c.type}|${c.starter}|${c.card.title}`;
+  let slot = null;
+  if(signature!==renderedScene.signature) slot = 0;
+  else if(c.contributions.length>renderedScene.contributions) slot = Math.min(c.contributions.length,2);
+  renderedScene = {signature,contributions:c.contributions.length};
+  return slot;
+}
 
 /* Called on every room snapshot. Reactively claims a Hidden Sin if my own
    private secrets match the newest journal entry, and schedules the
@@ -90,9 +103,10 @@ export function showOnlineEntry(){
       <div class="panel">
         <h3 style="color:var(--gold)">Open a New Tale</h3>
         <label class="fld">Choose the Incident</label>
-        <select id="oe-hook">${HOOKS.map((h,i)=>`<option value="${i}">${esc(h.title)}</option>`).join('')}</select>
+        <select id="oe-hook" onchange="onlineRefreshArtPicker()">${HOOKS.map((h,i)=>`<option value="${i}">${esc(h.title)}</option>`).join('')}</select>
         <label class="fld">Your name</label>
         <input type="text" id="oe-host-name" placeholder="Storyteller I">
+        <div id="oe-art-style-picker">${artStylePickerHTML(HOOKS[0].id,'oe-art-style')}</div>
         <div class="btnrow">
           <button class="primary" onclick="onlineCreateRoom()">Open the Table</button>
         </div>
@@ -113,11 +127,23 @@ export function showOnlineEntry(){
     </div>`;
   show('scr-online-entry');
 }
+export function onlineRefreshArtPicker(){
+  const selected = document.querySelector('input[name="oe-art-style"]:checked')?.value || null;
+  const hook = HOOKS[+$('oe-hook').value];
+  $('oe-art-style-picker').innerHTML = artStylePickerHTML(hook.id,'oe-art-style',selected);
+}
 export async function onlineCreateRoom(){
   try{
     const hook = HOOKS[+$('oe-hook').value];
     const name = ($('oe-host-name').value||'').trim();
-    const code = await createRoom(hook, name);
+    const artChoice = document.querySelector('input[name="oe-art-style"]:checked');
+    if(!artChoice){
+      const error = $('oe-art-style-error');
+      if(error) error.textContent = 'Choose Painterly Gothic or Tarot Gothic before opening the table.';
+      document.querySelector('.art-style-picker')?.scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+    const code = await createRoom(hook, name, artChoice.value);
     enterRoom(code);
   } catch(err){ fail(err); }
 }
@@ -168,6 +194,7 @@ export async function tryAutoRejoin(){
 
 /* ---------------- router ---------------- */
 function routeAndRender(room){
+  const animateSlot = sceneAnimationSlot(room);
   State.G = room;
   resetDraft();
   reactToRoom(room);
@@ -180,7 +207,7 @@ function routeAndRender(room){
     if(mySeatIndex(room)===room.pendingSecret.pi){ renderOnlineSecret(room); show('scr-secret'); return; }
     renderOnlineHub(room); show('scr-hub'); return; // banner inside renderOnlineHub explains the wait
   }
-  if(room.current){ renderOnlineScene(room); show('scr-scene'); return; }
+  if(room.current){ renderOnlineScene(room,animateSlot); show('scr-scene'); return; }
   const remaining = room.players.reduce((s,p)=>s+p.scenesLeft,0);
   if(remaining<=0 && !room.closeDone){ renderOnlineCloseIntro(room); show('scr-close'); return; }
   renderOnlineHub(room); show('scr-hub');
@@ -192,12 +219,19 @@ function renderOnlineLobby(room){
   const isHost = uid===room.hostUid;
   const seatCount = room.players.length;
   const emptySeats = Math.max(0, 6-seatCount);
+  const style = ART_STYLES.find(s=>s.id===currentArtStyle(room));
   $('scr-online-lobby').innerHTML = `
     <h2 class="center">The Table Gathers</h2>
     <div class="ornament">❦</div>
     <div class="panel" style="max-width:640px;margin:0 auto">
-      <p class="small" style="color:var(--gold)">${esc(room.hook.title)}</p>
-      <p class="small muted">${esc(room.hook.epigraph)}</p>
+      <div class="lobby-incident">
+        ${hookArtHTML(room.hook,{className:'lobby-incident-art'})}
+        <div>
+          <p class="small" style="color:var(--gold)">${esc(room.hook.title)}</p>
+          <p class="small muted">${esc(room.hook.epigraph)}</p>
+          <p class="small"><span class="pill">${esc(style.label)} · locked for this tale</span></p>
+        </div>
+      </div>
       <p class="center" style="margin:14px 0">
         <span class="sc" style="color:var(--gold);font-size:.85rem;letter-spacing:.15em">ROOM CODE</span><br>
         <span style="font-size:2.2rem;letter-spacing:.3em;color:#eddfba">${esc(State.onlineRoomCode)}</span>
@@ -241,14 +275,17 @@ function renderOnlineArchSetup(room){
     <p class="center muted sc" style="letter-spacing:.2em">ESTABLISHING THE DEAD</p>
     ${progressDotsHTML(i, 6, `Question ${ROMAN[i+1]} of VI`)}
     <div class="ornament">❦</div>
-    <div style="max-width:640px;margin:0 auto">
-      <div class="card">
+    <div style="max-width:760px;margin:0 auto">
+      <div class="setup-card-layout">
+        ${archetypeArtHTML(a,0,{className:'setup-card-art'})}
+        <div class="card">
         <div class="c-kicker">Archetype</div>
         <div class="c-title" style="font-size:1.5rem">${a.role}</div>
         <div class="c-prompt">${a.flavor}</div>
         <hr class="rule" style="border-color:rgba(60,45,25,.3)">
         <div style="font-size:1.05rem">“${a.setup[room.hook.id]}”</div>
         <div class="small" style="margin-top:8px;color:var(--blood)">${toneBadge(a.sides[0].tone)} <span style="color:var(--ink-soft)">— ${esc(a.sides[0].cond)} flip this card.</span></div>
+        </div>
       </div>
       <div class="panel">
         ${showForm ? `
@@ -279,14 +316,17 @@ function renderOnlineVictim(room){
     <h2 class="center">The Victim</h2>
     <p class="center muted" style="max-width:640px;margin:6px auto">${room.hook.victimLine}</p>
     <div class="ornament">❦</div>
-    <div style="max-width:680px;margin:0 auto">
-      <div class="panel tight">
-        ${room.victim.facts.map(f=>`<p class="small" style="margin:6px 0"><span style="color:var(--gold)">${esc(f.role)}:</span> <span>${esc(f.a)}</span></p>`).join('')}
-      </div>
-      <div class="panel">
-        <label class="fld">Together, name the deceased</label>
-        <input type="text" id="victim-name" placeholder="This is usually the hardest part.">
-        <div class="btnrow"><button class="primary" onclick="onlineFinishVictim()">Deal the Cards</button></div>
+    <div class="victim-setup-layout">
+      ${victimArtHTML(room.hook,{className:'victim-setup-art'})}
+      <div>
+        <div class="panel tight">
+          ${room.victim.facts.map(f=>`<p class="small" style="margin:6px 0"><span style="color:var(--gold)">${esc(f.role)}:</span> <span>${esc(f.a)}</span></p>`).join('')}
+        </div>
+        <div class="panel">
+          <label class="fld">Together, name the deceased</label>
+          <input type="text" id="victim-name" placeholder="This is usually the hardest part.">
+          <div class="btnrow"><button class="primary" onclick="onlineFinishVictim()">Deal the Cards</button></div>
+        </div>
       </div>
     </div>`;
 }
@@ -295,34 +335,62 @@ export async function onlineFinishVictim(){
 }
 
 /* ---------------- hub ---------------- */
+function onlineTurnSeatHTML(room,p,i,mySeat){
+  const isMe = i===mySeat;
+  const noWayToLead = p.handCount===0 && (p.omens.length===0 || room.sceneDeck.length===0);
+  const needsTrade = p.handCount===0 && !noWayToLead;
+  const state = p.scenesLeft<=0 ? 'done' : noWayToLead ? 'blocked' : needsTrade ? 'trade' : 'ready';
+  const label = state==='done' ? 'Finished this act' : state==='blocked' ? 'No card to lead' : state==='trade' ? 'Trade first' : isMe ? 'You are ready' : 'Ready to lead';
+  return `<div class="turn-seat ${state}${isMe?' mine':''}">
+    <div class="turn-seat-head"><strong>${esc(p.name)}${isMe?' · you':''}</strong><span>${label}</span></div>
+    <p>${p.scenesLeft} scene${p.scenesLeft===1?'':'s'} left to lead · ${p.handCount} scene card${p.handCount===1?'':'s'} · ${p.omens.length} held omen${p.omens.length===1?'':'s'}</p>
+    <div class="turn-seat-actions">
+      ${state==='ready' && isMe?'<button class="primary" onclick="onlineStartScene()">Begin a scene</button>':''}
+      ${state==='blocked' && p.scenesLeft>0?`<button class="blood" onclick="onlineForfeitScene(${i})">${isMe?'Forfeit my scene':`Forfeit for ${esc(p.name)}`}</button>`:''}
+      ${isMe?`<button class="ghost" onclick="openOnlineHand()">View my cards (${myPrivate.hand.length+p.omens.length})</button>`:''}
+    </div>
+  </div>`;
+}
+
+function onlineMyHandHTML(room,mySeat){
+  const me = room.players[mySeat];
+  if(!me) return '';
+  return `<details class="disclose personal-hand" id="online-my-hand">
+    <summary>My Hand <span class="small muted">${myPrivate.hand.length} scene card${myPrivate.hand.length===1?'':'s'} · ${me.omens.length} omen${me.omens.length===1?'':'s'} · private to this screen</span></summary>
+    <div class="disclose-body">
+      <p class="hand-section-label">Scene cards · ${myPrivate.hand.length}</p>
+      <div class="cardgrid hand-cardgrid">${myPrivate.hand.map(c=>sceneCardHTML(c)).join('') || '<span class="small muted">No scene cards in hand.</span>'}</div>
+      ${me.omens.length?`<p class="hand-section-label">Held omens · ${me.omens.length}</p><div class="cardgrid hand-cardgrid">${me.omens.map((o,oi)=>`
+        <div class="held-card">${omenCard(o)}${room.sceneDeck.length?`<button class="ghost" onclick="onlineTradeOmen(${oi})">Trade for a scene card</button>`:''}</div>`).join('')}</div>`:''}
+      ${myPrivate.secrets.map(s=>`<details class="secretbox"><summary>Hidden Sin ${s.used?'— revealed':'(yours alone to read)'}</summary>
+        <div class="small" style="margin-top:6px">${s.combo.map(toneBadge).join(' ')}<br><span style="color:#c9b3de">${esc(s.q)}</span>
+        ${s.used?'':'<br><span class="muted">Unlocks when a scene’s tones contain this combination.</span>'}</div></details>`).join('')}
+    </div>
+  </details>`;
+}
+
 function renderOnlineHub(room){
   const mySeat = mySeatIndex(room);
+  const me = room.players[mySeat];
   const close = room.actClose[room.act];
   const remaining = room.players.reduce((s,p)=>s+p.scenesLeft,0);
   const banner = room.pendingSecret ? `<div class="notice">A Hidden Sin is being revealed at the table right now…</div>` : '';
+  const iCanLead = me && me.scenesLeft>0 && me.handCount>0;
   $('scr-hub').innerHTML = `
     <h2 class="center" style="margin-top:8px">${ACT_NAMES[room.act]}</h2>
     <p class="center muted">${esc(room.hook.title)} · The Victim: ${esc(room.victim.name)}</p>
     ${actTrackHTML(room.act)}
     <div class="ornament">✦ ❦ ✦</div>
     ${banner}
-    <div class="panel spotlight">
-      <h3 style="color:var(--gold)">The Table</h3>
-      <p class="small muted">${remaining} scene${remaining===1?'':'s'} remain${remaining===1?'s':''} before the Act closes.</p>
-      <div class="btnrow">
-        ${room.players.map((p,i)=>{
-          const isMe = i===mySeat;
-          if(p.scenesLeft<=0) return `<span class="pill" style="opacity:.5">${esc(p.name)} — done</span>`;
-          if(p.handCount===0 && (p.omens.length===0 || room.sceneDeck.length===0))
-            return isMe ? `<button class="blood" onclick="onlineForfeitScene(${i})">Forfeit my scene (no cards)</button>`
-                        : `<button class="ghost" onclick="onlineForfeitScene(${i})">${esc(p.name)} has no cards — forfeit for them</button>`;
-          if(p.handCount===0)
-            return `<span class="pill">${esc(p.name)} — must trade an omen for a scene card below</span>`;
-          if(isMe) return `<button class="primary" onclick="onlineStartScene()">Begin a scene${p.scenesLeft>1?` (${p.scenesLeft} left)`:''}</button>`;
-          return `<span class="pill">${esc(p.name)} may begin a scene</span>`;
-        }).join('')}
+    <div class="panel spotlight turn-board">
+      <div class="turn-board-head">
+        <div><span class="turn-kicker">Who acts now?</span><h3>${iCanLead?'You may begin the next scene':'Any ready storyteller may begin'}</h3></div>
+        <span class="pill">${remaining} scene${remaining===1?'':'s'} before the close</span>
       </div>
+      <p class="turn-guidance">There is no fixed turn order. A storyteller marked ready may begin; once the scene opens, everyone else gets one chance to buy in.</p>
+      <div class="turn-seats">${room.players.map((p,i)=>onlineTurnSeatHTML(room,p,i,mySeat)).join('')}</div>
     </div>
+    ${onlineMyHandHTML(room,mySeat)}
     ${room.journal.length ? `<h3 style="color:var(--gold)">Last Scene</h3>${journalEntrySummaryHTML(room.journal[room.journal.length-1], {compact:true})}` : ''}
     <div class="panel tight">
       <h3 style="color:var(--blood-bright)">The Act Close — foreseen</h3>
@@ -348,39 +416,35 @@ function renderOnlineHub(room){
       <summary>The Storytellers <span class="small muted">${room.players.length} in play · Scene deck ${room.sceneDeck.length} · Omen deck ${room.omenDeck.length}</span></summary>
       <div class="disclose-body">
         <div class="pgrid" style="margin-top:8px">
-          ${room.players.map((p,i)=>onlinePlayerPanel(p,i,i===mySeat,room)).join('')}
+          ${room.players.map((p,i)=>onlinePlayerPanel(p,i===mySeat)).join('')}
         </div>
       </div>
     </details>`;
 }
-function onlinePlayerPanel(p, i, isMe, room){
-  // Stage 4: hand/secrets are private. My own panel shows the real
-  // cards (from myPrivate, kept live via my own private-doc
-  // subscription); everyone else's panel shows counts only — the
-  // whole point of this stage. Deliberately NOT reusing cards.js's
-  // playerPanel() here: its trade button always calls the local/
-  // hotseat tradeOmen(pi,oi), which would mutate State.G directly and
-  // bypass Firestore if left in a panel that isn't mine.
-  const handHTML = isMe
-    ? (myPrivate.hand.map(c=>`<div class="minicard"><div class="mc-t">${esc(c.title)}</div><span class="tone ${c.tone}" style="font-size:.6rem">${c.tone}</span></div>`).join('')
-       || '<span class="small muted"><span>No scene cards in hand.</span></span>')
-    : `<span class="small muted"><span>${p.handCount} scene card${p.handCount===1?'':'s'} in hand.</span></span>`;
-  const secretsHTML = isMe
-    ? myPrivate.secrets.map(s=>`
-      <details class="secretbox"><summary>Hidden Sin ${s.used?'— revealed':'(yours alone to read)'}</summary>
-        <div class="small" style="margin-top:6px">${s.combo.map(toneBadge).join(' ')}<br>
-        <span style="color:#c9b3de">${esc(s.q)}</span>
-        ${s.used?'':'<br><span class="muted">Unlocks when a scene’s tones contain this combination.</span>'}</div>
-      </details>`).join('')
-    : (p.secretsCount ? `<p class="small muted">${p.unrevealedSecretsCount} unrevealed Hidden Sin${p.unrevealedSecretsCount===1?'':'s'}.</p>` : '');
+function onlinePlayerPanel(p, isMe){
+  // This is the public roster view: only counts and publicly held omens.
+  // The seated player's real hand and Hidden Sin live in the private
+  // "My Hand" drawer above, populated from their owner-only document.
+  const handHTML = `<span class="small muted"><span>${p.handCount} scene card${p.handCount===1?'':'s'} in hand.${isMe?' Use “My Hand” above to read yours.':''}</span></span>`;
+  const secretsHTML = !isMe && p.secretsCount ? `<p class="small muted">${p.unrevealedSecretsCount} unrevealed Hidden Sin${p.unrevealedSecretsCount===1?'':'s'}.</p>` : '';
   return `<div class="ppanel">
     <h4>${esc(p.name)}${isMe?' (you)':''}</h4>
     <div class="handrow">${handHTML}</div>
-    ${p.omens.length?`<div class="handrow">${p.omens.map((o,oi)=>`
-      <div class="minicard omen"><div class="mc-t">${o.glyph} ${esc(o.title)}</div>
-      ${isMe && room.sceneDeck.length?`<button class="ghost" style="margin-top:4px;font-size:.7rem;padding:2px 8px" onclick="onlineTradeOmen(${oi})">trade for a scene card</button>`:''}</div>`).join('')}</div>`:''}
+    ${p.omens.length?`<div class="handrow">${p.omens.map(o=>`
+      <div class="minicard omen"><div class="mc-t">${o.glyph} ${esc(o.title)}</div></div>`).join('')}</div>`:''}
     ${secretsHTML}
   </div>`;
+}
+export function openOnlineHand(){
+  const hand = $('online-my-hand');
+  if(!hand) return;
+  hand.open = true;
+  hand.classList.remove('hand-focus');
+  requestAnimationFrame(()=>{
+    hand.classList.add('hand-focus');
+    hand.scrollIntoView({behavior:'smooth',block:'start'});
+    setTimeout(()=>hand.classList.remove('hand-focus'),1400);
+  });
 }
 export function onlineStartScene(){
   draft = {cardIdx:null, archIdx:null};
@@ -497,19 +561,11 @@ export function routeAndRenderCurrent(){
 }
 
 /* ---------------- scene: play ---------------- */
-function renderOnlineScene(room){
-  const c = room.current, p = room.players[c.starter], a = room.archetypes[c.archIdx];
+function renderOnlineScene(room,animateSlot=null){
+  const c = room.current, p = room.players[c.starter];
   const mySeat = mySeatIndex(room);
-  const isClose = c.type==='close';
   const iAmStarter = mySeat===c.starter;
   const iAlreadyContributed = c.contributions.some(x=>x.pi===mySeat);
-
-  const contribHTML = c.contributions.map(x=>`
-    <div class="chron-entry" style="margin:8px 0">
-      <div class="ce-head"><span class="ce-title" style="font-size:.95rem">${x.kind==='omen'?x.card.glyph+' ':''}${esc(x.card.title)}</span>
-      <span class="ce-meta">played by ${esc(room.players[x.pi].name)}${x.kind==='scene'?' · '+toneBadge(x.card.tone):' · omen'}</span></div>
-      <div class="small" style="color:#cfc2a2">${nl2br(x.how)||'<span class="muted">…manifests wordlessly.</span>'}</div>
-    </div>`).join('');
 
   let addingHTML = '';
   if(!iAmStarter && !iAlreadyContributed && c.contributions.length < maxContrib()){
@@ -538,31 +594,20 @@ function renderOnlineScene(room){
   const endSceneHTML = iAmStarter ? (!draft.resolving ? `
     <div class="panel spotlight">
       <label class="fld">The record of what happens</label>
+      <p class="small muted" style="margin-bottom:6px">Play the scene aloud. Note what the Chronicle should remember: who appeared, what was said, and what was discovered.</p>
       <textarea id="scene-happened" style="min-height:130px" oninput="onlineSetSceneHappened(this.value)" placeholder="What the Chronicle will remember of this scene…">${esc(draft.happened||'')}</textarea>
       <div class="btnrow"><button class="blood" onclick="onlineEndScene()">The scene ends</button></div>
     </div>` : renderOnlineResolveInline(room)) : '';
 
   $('scr-scene').innerHTML = `
-    <p class="center muted sc" style="letter-spacing:.2em">${isClose?'THE ACT CLOSE':'A SCENE'} — ${ACT_NAMES[room.act].toUpperCase()}</p>
-    <div class="ornament">❦</div>
-    <div class="pgrid" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
-      <div class="card">
-        <div class="c-kicker">${isClose?'Act Close':'Scene'}</div>
-        <div class="c-title">${esc(c.card.title)}</div>
-        <div class="c-prompt">${esc(c.card.prompt)}</div>
-        ${c.card.tone?`<div style="margin-top:8px">${toneBadge(c.card.tone)}</div>`:''}
-        ${c.element?`<hr class="rule" style="border-color:rgba(60,45,25,.3)"><div class="small" style="color:var(--blood)"><strong>Include:</strong> <span>${esc(c.element)}</span></div>`:''}
+    ${sceneTrackerHTML(room,{viewerSeat:mySeat,phase:draft.resolving?'resolve':'play',happened:draft.happened,animateSlot})}
+    ${addingHTML?`<div class="panel scene-action-panel${draft.adding?' spotlight':''}">
+      <div class="scene-action-head">
+        <div><span class="sc">Add to the scene</span><p>You may buy in once; the scene holds three cards at most.</p></div>
+        <span class="pill">${1+c.contributions.length} of 3 filled</span>
       </div>
-      <div>${archCard(a)}
-        <p class="small muted" style="margin-top:6px">Led by ${esc(p.name)}${iAmStarter?' (you)':''}.</p>
-      </div>
-    </div>
-    ${c.opening?`<div class="panel tight"><span class="sc small" style="color:var(--gold)">THE CAMERA SEES</span><p style="color:#e3d7b8">${nl2br(c.opening)}</p></div>`:''}
-    <div class="panel tight">
-      <h3 style="color:var(--gold)">Cards played into the scene <span class="muted small">(${1+c.contributions.length} of 3)</span></h3>
-      ${contribHTML || '<p class="small muted">None yet.</p>'}
       ${addingHTML}
-    </div>
+    </div>`:''}
     ${endSceneHTML || (iAmStarter?'':'<p class="small muted center">Waiting for '+esc(p.name)+' to end the scene…</p>')}`;
 }
 function renderOnlineSceneRefresh(){ renderOnlineScene(State.G); }

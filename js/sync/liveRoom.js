@@ -7,6 +7,7 @@ import { db } from './firebase-init.js';
 import { ensureSignedIn, getUid } from './auth.js';
 import { ARCHETYPES, ACT_CLOSES } from '../data/index.js';
 import { shuffle } from '../engine/utils.js';
+import { normalizeArtStyle } from '../ui/art.js';
 
 export let roomCode = null;
 let unsub = null;
@@ -28,11 +29,11 @@ function emptyPlayer(name, uid){
   return {name, uid, omens:[], handCount:0, secretsCount:0, unrevealedSecretsCount:0, scenesLeft:0};
 }
 
-export async function createRoom(hook, hostName){
+export async function createRoom(hook, hostName, artStyle){
   const uid = await ensureSignedIn();
   const code = genCode();
   await setDoc(roomRef(code), {
-    status:'lobby', phase:'lobby', hostUid:uid, hook,
+    status:'lobby', phase:'lobby', hostUid:uid, hook, artStyle:normalizeArtStyle(artStyle),
     players:[emptyPlayer(hostName||'Storyteller I', uid)],
     seats:{[uid]:0},
     act:0, archetypes:[], victim:{name:'', facts:[]},

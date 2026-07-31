@@ -4,12 +4,13 @@
    the two. Everything else stays module-scoped. */
 import { show, closeOverlay, initHistoryNav, applyFirstrunVisibility, dismissFirstrunHint } from './ui/screens.js';
 import { flipArchCard } from './ui/cards.js';
+import { gameArtImgError } from './ui/art.js';
 import { showIdleClicker, idleClick } from './ui/idle.js';
 import { showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail,
-         closeGalleryDetail, galleryImgError } from './ui/gallery.js';
+         closeGalleryDetail, galleryImgError, flipGalleryCard } from './ui/gallery.js';
 import { renderHooks, chooseHook, renderPlayerInputs, confirmPlayers,
          beginArchSetup, saveArchSetup, finishVictim } from './ui/setup.js';
-import { renderHub, tradeOmen, forfeitScene, beginClose } from './ui/hub.js';
+import { renderHub, tradeOmen, forfeitScene, beginClose, openLocalHand } from './ui/hub.js';
 import { startSceneFor, pickSceneCard, pickArch, beginScene, pickContrib,
          pickContribScene, pickContribOmen, confirmContrib, cancelContrib,
          setContribHow, setSceneHappened, dismissScenePrimer } from './ui/scene.js';
@@ -27,14 +28,16 @@ import {
   onlineSetContribHow, onlineSetSceneHappened, onlineSetSecretAnswer,
   onlineConfirmContrib, onlineEndScene, onlineApplyResolve,
   onlineToggleSecretOmen, onlineConfirmSecret,
-  onlineAnswerForAbsent, onlineCopyRoomLink, onlineDismissScenePrimer
+  onlineAnswerForAbsent, onlineCopyRoomLink, onlineDismissScenePrimer,
+  onlineRefreshArtPicker, openOnlineHand
 } from './ui/online.js';
 
 Object.assign(window, {
-  show, flipArchCard, showIdleClicker, idleClick, dismissFirstrunHint,
-  showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail, closeGalleryDetail, galleryImgError,
+  show, flipArchCard, gameArtImgError, showIdleClicker, idleClick, dismissFirstrunHint,
+  showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail, closeGalleryDetail,
+  galleryImgError, flipGalleryCard,
   chooseHook, renderPlayerInputs, confirmPlayers, beginArchSetup, saveArchSetup, finishVictim,
-  renderHub, tradeOmen, forfeitScene, beginClose,
+  renderHub, tradeOmen, forfeitScene, beginClose, openLocalHand,
   startSceneFor, pickSceneCard, pickArch, beginScene, pickContrib, pickContribScene, pickContribOmen,
   confirmContrib, cancelContrib, setContribHow, setSceneHappened, dismissScenePrimer,
   endScene, applyResolve, toggleSecretOmen, confirmSecret,
@@ -48,7 +51,8 @@ Object.assign(window, {
   onlineSetContribHow, onlineSetSceneHappened, onlineSetSecretAnswer,
   onlineConfirmContrib, onlineEndScene, onlineApplyResolve,
   onlineToggleSecretOmen, onlineConfirmSecret,
-  onlineAnswerForAbsent, onlineCopyRoomLink, onlineDismissScenePrimer
+  onlineAnswerForAbsent, onlineCopyRoomLink, onlineDismissScenePrimer,
+  onlineRefreshArtPicker, openOnlineHand
 });
 
 /* ---------------- init ---------------- */
