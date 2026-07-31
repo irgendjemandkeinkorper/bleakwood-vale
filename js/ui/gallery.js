@@ -67,11 +67,11 @@ function galleryMediaHTML(t, detail=false){
       <div class="gallery-face gallery-front">${imgWithFallback(t.path,`${t.title}, ${t.sub}`)}${fallbackHTML(t,t.sub)}<span class="gallery-face-label">${esc(t.sub)}</span></div>
       <div class="gallery-face gallery-back">${imgWithFallback(t.backPath,`${t.title}, ${t.backSub}`)}${fallbackHTML(t,t.backSub)}<span class="gallery-face-label">${esc(t.backSub)}</span></div>
     </div>
-    <button class="gallery-flip-control" type="button" onclick="event.stopPropagation();flipGalleryCard(this)" aria-label="View Side II" aria-pressed="false">⟳ <span>Side II</span></button>
+    <button class="gallery-flip-control" type="button" onclick="event.stopPropagation();flipGalleryCard(this)" onkeydown="event.stopPropagation()" aria-label="View Side II" aria-pressed="false">⟳ <span>Side II</span></button>
   </div>`;
 }
 function tileHTML(t){
-  return `<div class="gtile" onclick="openGalleryDetail('${t.cat}','${t.key}')">
+  return `<div class="gtile" role="button" tabindex="0" aria-label="Open ${esc(t.title)} details" onclick="openGalleryDetail('${t.cat}','${t.key}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openGalleryDetail('${t.cat}','${t.key}')}">
     ${galleryMediaHTML(t)}
     <div class="gtile-cap">${esc(t.title)}${t.sub?` <span class="muted small">— <span data-gallery-side-label>${esc(t.sub)}</span></span>`:''}</div>
     ${t.flippable?gallerySideQuoteHTML(t):''}

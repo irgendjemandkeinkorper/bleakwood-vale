@@ -222,6 +222,7 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
 .card .c-prompt{color:var(--ink);font-size:1rem;line-height:1.4}
 .card.selectable{cursor:pointer;transition:transform .15s ease, box-shadow .15s ease}
 .card.selectable:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(0,0,0,.7)}
+.card.selectable:focus-visible,.arch-flip.selectable:focus-visible,.gtile:focus-visible{outline:2px solid var(--moon);outline-offset:3px}
 .card.selected{outline:2px solid var(--blood-bright);outline-offset:-5px;box-shadow:0 0 0 2px var(--blood-bright), 0 6px 18px rgba(0,0,0,.6)}
 .card.omen{background:linear-gradient(160deg,#241c26,#171019);color:#d9cfe0;border-color:#5c4a63;outline-color:#5c4a63}
 .card.omen .c-title{color:#e6d8ef}

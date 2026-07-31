@@ -23,8 +23,9 @@ function archFaceHTML(a, sideIdx, turned){
    toggle (see flipArchCard below), not game state. */
 export function archCard(a, selectable, idx){
   const frontIdx = a.flipped?1:0, backIdx = a.flipped?0:1;
-  return `<div class="arch-flip${selectable?' selectable':''}" ${selectable?`onclick="${selectable}(${idx})" id="arch-pick-${idx}"`:''}>
-    <button class="flip-btn" type="button" onclick="event.stopPropagation();flipArchCard(this)" aria-label="Peek at the other side" title="Peek at the other side">⟳</button>
+  const pickAttrs = selectable ? `role="button" tabindex="0" aria-label="Choose ${esc(a.name||a.role)} as the lead archetype" aria-pressed="false" onclick="${selectable}(${idx})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${selectable}(${idx})}" id="arch-pick-${idx}"` : '';
+  return `<div class="arch-flip${selectable?' selectable':''}" ${pickAttrs}>
+    <button class="flip-btn" type="button" onclick="event.stopPropagation();flipArchCard(this)" onkeydown="event.stopPropagation()" aria-label="Peek at the other side" title="Peek at the other side">⟳</button>
     <div class="arch-flip-inner">
       <div class="arch-face arch-front">${archFaceHTML(a, frontIdx, a.flipped)}</div>
       <div class="arch-face arch-back">${archFaceHTML(a, backIdx, !a.flipped)}</div>
@@ -80,7 +81,8 @@ export function sceneAnatomyDiagramHTML(){
   </div>`;
 }
 export function omenCard(o, selectable, idx){
-  return `<div class="card omen${selectable?' selectable':''}" ${selectable?`onclick="${selectable}(${idx})" id="omen-pick-${idx}"`:''}>
+  const pickAttrs = selectable ? `role="button" tabindex="0" aria-label="Choose omen ${esc(o.title)}" aria-pressed="false" onclick="${selectable}(${idx})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${selectable}(${idx})}" id="omen-pick-${idx}"` : '';
+  return `<div class="card omen${selectable?' selectable':''}" ${pickAttrs}>
     <div class="c-kicker">Omen</div>
     ${omenArtHTML(o,{className:'omen-card-art'})}
     <div class="glyph">${o.glyph}</div>
@@ -90,7 +92,8 @@ export function omenCard(o, selectable, idx){
 }
 export function sceneCardHTML(c, selectable, idx){
   const G = State.G;
-  return `<div class="card${selectable?' selectable':''}" ${selectable?`onclick="${selectable}(${idx})" id="scene-pick-${idx}"`:''}>
+  const pickAttrs = selectable ? `role="button" tabindex="0" aria-label="Choose scene card ${esc(c.title)}" aria-pressed="false" onclick="${selectable}(${idx})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${selectable}(${idx})}" id="scene-pick-${idx}"` : '';
+  return `<div class="card${selectable?' selectable':''}" ${pickAttrs}>
     <div class="c-kicker">Scene · ${ACT_NAMES[G.act]}</div>
     <div class="c-title">${esc(c.title)}</div>
     <div class="c-prompt">${esc(c.prompt)}</div>

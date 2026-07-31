@@ -121,6 +121,10 @@ def run() -> None:
             assert page.locator("#scr-scene .turn-diagram").count() == 1
             page.get_by_role("button", name="Got it — begin", exact=True).click()
             assert page.locator("#scr-scene #btn-begin").count() == 1
+            first_scene_card = page.locator("#scr-scene [id^='scene-pick-']").first
+            first_scene_card.focus()
+            page.keyboard.press("Enter")
+            assert first_scene_card.get_attribute("aria-pressed") == "true"
             page.get_by_role("button", name="Back to the Table", exact=True).click()
             page.wait_for_selector("#scr-hub.active")
 
@@ -138,7 +142,8 @@ def run() -> None:
             assert quote.inner_text() != front_quote
             assert tile.locator("[data-gallery-side-label]").inner_text() == "Side II — turned"
 
-            tile.click()
+            tile.focus()
+            page.keyboard.press("Enter")
             page.wait_for_selector(".gdetail")
             detail_quote = page.locator(".gdetail [data-gallery-side-quote]")
             detail_front = detail_quote.inner_text()

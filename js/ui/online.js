@@ -572,14 +572,16 @@ function renderOnlineScenePick(){
 export function onlineDismissScenePrimer(){ markIntroSeen(); renderOnlineScenePick(); }
 export function onlinePickSceneCard(i){
   draft.cardIdx = i;
-  document.querySelectorAll('[id^="scene-pick-"]').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('[id^="scene-pick-"]').forEach(el=>{ el.classList.remove('selected'); el.setAttribute('aria-pressed','false'); });
   $('scene-pick-'+i).classList.add('selected');
+  $('scene-pick-'+i).setAttribute('aria-pressed','true');
   onlineCheckBegin();
 }
 export function onlinePickArch(i){
   draft.archIdx = i;
-  document.querySelectorAll('[id^="arch-pick-"]').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('[id^="arch-pick-"]').forEach(el=>{ el.classList.remove('selected'); el.setAttribute('aria-pressed','false'); });
   $('arch-pick-'+i).classList.add('selected');
+  $('arch-pick-'+i).setAttribute('aria-pressed','true');
   onlineCheckBegin();
 }
 function onlineCheckBegin(){
