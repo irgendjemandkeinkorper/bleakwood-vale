@@ -8,41 +8,118 @@ export function buildMarkdown(){
   const G = State.G;
   const L = [];
   L.push('# THE BLEAKWOOD VALE CHRONICLE');
-  L.push(`## ${G.hook.title}`);
-  L.push(`*Being a true & faithful account of the death of **${G.victim.name}**.*`, '');
+
+  const hookTitle = (G && G.hook && G.hook.title) ? G.hook.title : 'An Untold Tale';
+  L.push(`## ${hookTitle}`);
+
+  const victimName = (G && G.victim && G.victim.name) ? G.victim.name : 'the Deceased';
+  L.push(`*Being a true & faithful account of the death of **${victimName}**.*`, '');
+
   L.push('### Concerning the Victim');
-  G.victim.facts.forEach(f=>L.push(`- **${f.who}** (${f.role}) — *“${f.q}”* — ${f.a}`));
+  const facts = (G && G.victim && Array.isArray(G.victim.facts)) ? G.victim.facts : [];
+  facts.forEach(f => {
+    if (!f) return;
+    const who = f.who || 'Unnamed';
+    const role = f.role || 'No Role';
+    const q = f.q || '';
+    const a = f.a || '';
+    L.push(`- **${who}** (${role}) — *“${q}”* — ${a}`);
+  });
+
   L.push('', '### Dramatis Personae');
-  G.archetypes.forEach(a=>L.push(`- **${a.name||a.role}** — ${a.role}${a.flipped?' *(turned)*':''} — Tone: ${faceUp(a).tone}`));
+  const archetypes = (G && Array.isArray(G.archetypes)) ? G.archetypes : [];
+  archetypes.forEach(a => {
+    if (!a) return;
+    const name = a.name || a.role || 'Unnamed Archetype';
+    const role = a.role || 'No Role';
+    const flippedText = a.flipped ? ' *(turned)*' : '';
+    let tone = 'Unknown';
+    if (a.sides && Array.isArray(a.sides)) {
+      const side = a.sides[a.flipped ? 1 : 0] || a.sides[0];
+      if (side && side.tone) {
+        tone = side.tone;
+      }
+    }
+    L.push(`- **${name}** — ${role}${flippedText} — Tone: ${tone}`);
+  });
+
   [1,2,3].forEach(act=>{
-    const list = G.journal.filter(e=>e.act===act && !e.struck);
+    const journal = (G && Array.isArray(G.journal)) ? G.journal : [];
+    const list = journal.filter(e => e && e.act === act && !e.struck);
     if(!list.length) return;
-    L.push('', `## ${ACT_NAMES[act]}`);
+
+    const actName = ACT_NAMES[act] || `Act ${act}`;
+    L.push('', `## ${actName}`);
+
     list.forEach(e=>{
-      if(e.type==='note'){ L.push('', `*${e.text}*`); return; }
-      if(e.type==='secret'){
-        L.push('', `### ✧ A Hidden Sin Revealed — ${e.playerName}`);
-        L.push(`> **“${e.question}”**`);
-        L.push(`*Answered through the omens: ${e.omens.map(o=>o.title).join(', ')}.*`);
-        if(e.answer) L.push('', e.answer);
+      if (e.type === 'note') {
+        if (e.text && String(e.text).trim()) {
+          L.push('', `*${String(e.text).trim()}*`);
+        }
         return;
       }
-      L.push('', `### ${e.type==='close'?'ACT CLOSE — ':''}${e.cardTitle}`);
-      L.push(`*Led by ${e.playerName} as ${e.archName} (${e.archRole}). Tones: ${e.tones.join(', ')}.*`);
-      if(e.element) L.push(`*Commanded to include: ${e.element}*`);
-      if(e.opening) L.push('', `> ${e.opening.replace(/\n/g,'\n> ')}`);
-      e.contributions.forEach(x=>L.push(`- **${x.title}** (${x.playerName})${x.how?` — ${x.how}`:''}`));
-      if(e.happened) L.push('', e.happened);
-      if(e.flips.length) L.push('', `*${e.flips.join('; ')}.*`);
+      if (e.type === 'secret') {
+        const playerName = e.playerName || 'Anonymous';
+        const question = e.question || 'A Secret';
+        L.push('', `### ✧ A Hidden Sin Revealed — ${playerName}`);
+        L.push(`> **“${question}”**`);
+        const omens = Array.isArray(e.omens) ? e.omens : [];
+        const omenTitles = omens.map(o => (o && o.title) || 'Unknown Omen').filter(Boolean);
+        const omenText = omenTitles.length ? omenTitles.join(', ') : 'no omens';
+        L.push(`*Answered through the omens: ${omenText}.*`);
+        if (e.answer) L.push('', e.answer);
+        return;
+      }
+
+      const isClose = e.type === 'close';
+      const cardTitle = e.cardTitle || 'An Untitled Card';
+      L.push('', `### ${isClose ? 'ACT CLOSE — ' : ''}${cardTitle}`);
+
+      const playerName = e.playerName || 'Someone';
+      const archName = e.archName || 'Unnamed';
+      const archRole = e.archRole || 'No Role';
+      const tonesList = Array.isArray(e.tones) ? e.tones.map(t => t || 'Unknown') : [];
+      const tonesText = tonesList.length ? tonesList.join(', ') : 'None';
+      L.push(`*Led by ${playerName} as ${archName} (${archRole}). Tones: ${tonesText}.*`);
+
+      if (e.element && String(e.element).trim()) {
+        L.push(`*Commanded to include: ${String(e.element).trim()}*`);
+      }
+      if (e.opening && typeof e.opening === 'string' && e.opening.trim()) {
+        L.push('', `> ${e.opening.trim().replace(/\n/g,'\n> ')}`);
+      }
+
+      const contributions = Array.isArray(e.contributions) ? e.contributions : [];
+      contributions.forEach(x => {
+        if (!x) return;
+        const cTitle = x.title || 'Untitled';
+        const cPlayerName = x.playerName || 'Anonymous';
+        const howText = (x.how && typeof x.how === 'string' && x.how.trim()) ? ` — ${x.how.trim()}` : '';
+        L.push(`- **${cTitle}** (${cPlayerName})${howText}`);
+      });
+
+      if (e.happened && String(e.happened).trim()) {
+        L.push('', String(e.happened).trim());
+      }
+
+      const flips = Array.isArray(e.flips) ? e.flips.filter(Boolean) : [];
+      if (flips.length) {
+        L.push('', `*${flips.join('; ')}.*`);
+      }
     });
   });
-  if(G.act>3){
+
+  const actNum = (G && typeof G.act === 'number') ? G.act : 0;
+  if (actNum > 3) {
     L.push('', '## Questions for the Survivors');
-    EPILOGUE_QUESTIONS.forEach(q=>L.push(`- ${q}`));
+    const questions = Array.isArray(EPILOGUE_QUESTIONS) ? EPILOGUE_QUESTIONS : [];
+    questions.forEach(q => L.push(`- ${q}`));
   }
+
   L.push('', '---', '*Played in Bleakwood Vale — a gothic re-imagining after the design of Tall Pines by Miles Gaborit.*');
   return L.join('\n');
 }
+
 export function copyChronicle(){
   const md = buildMarkdown();
   const done = ()=>{ const b=$('btn-copy'); if(b){ b.textContent='Copied to the Clipboard'; setTimeout(()=>b.textContent='Copy as Markdown',2200); } };
@@ -50,6 +127,7 @@ export function copyChronicle(){
     navigator.clipboard.writeText(md).then(done).catch(()=>fallbackCopy(md));
   } else fallbackCopy(md);
 }
+
 export function fallbackCopy(md){
   $('overlay-content').innerHTML = `
     <h2 style="color:var(--gold)">Copy the Chronicle</h2>
@@ -59,6 +137,7 @@ export function fallbackCopy(md){
   openOverlay();
   const t=$('fallback-md'); t.focus(); t.select();
 }
+
 export function downloadChronicle(){
   const blob = new Blob([buildMarkdown()], {type:'text/markdown'});
   const a = document.createElement('a');
