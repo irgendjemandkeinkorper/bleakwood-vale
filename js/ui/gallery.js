@@ -15,7 +15,8 @@ let gState = { style:'painterly', cat:'archetypes', detail:null };
 function archetypeTiles(style){
   return ARCHETYPES.map(a=>{
     const slug = slugify(a.role);
-    return {cat:'archetypes', key:slug, title:a.role, sub:'Side I', backSub:'Side II — turned', flavor:a.flavor,
+    return {cat:'archetypes', key:slug, title:a.role, sub:'Side I', backSub:'Side II — turned',
+      flavor:a.flavor, quote:a.sides[0].cond, backQuote:a.sides[1].cond,
       path:`art/images/${style}/archetypes/${slug}--front`, backPath:`art/images/${style}/archetypes/${slug}--turned`, flippable:true};
   });
 }
@@ -73,7 +74,12 @@ function tileHTML(t){
   return `<div class="gtile" onclick="openGalleryDetail('${t.cat}','${t.key}')">
     ${galleryMediaHTML(t)}
     <div class="gtile-cap">${esc(t.title)}${t.sub?` <span class="muted small">— <span data-gallery-side-label>${esc(t.sub)}</span></span>`:''}</div>
+    ${t.flippable?gallerySideQuoteHTML(t):''}
   </div>`;
+}
+
+function gallerySideQuoteHTML(t){
+  return `<q class="gallery-side-quote" data-gallery-side-quote data-front-quote="${esc(t.quote)}" data-back-quote="${esc(t.backQuote)}">${esc(t.quote)}</q>`;
 }
 
 export function flipGalleryCard(btn){
@@ -83,8 +89,11 @@ export function flipGalleryCard(btn){
   btn.setAttribute('aria-label',flipped?'View Side I':'View Side II');
   btn.setAttribute('aria-pressed',String(flipped));
   btn.innerHTML = `${flipped?'↶':'⟳'} <span>${flipped?'Side I':'Side II'}</span>`;
-  const label = card.closest('.gtile, .gdetail')?.querySelector('[data-gallery-side-label]');
+  const container = card.closest('.gtile, .gdetail');
+  const label = container?.querySelector('[data-gallery-side-label]');
   if(label) label.textContent = flipped ? 'Side II — turned' : 'Side I';
+  const quote = container?.querySelector('[data-gallery-side-quote]');
+  if(quote) quote.textContent = flipped ? quote.dataset.backQuote : quote.dataset.frontQuote;
 }
 
 export function showGallery(){
@@ -128,7 +137,8 @@ function detailHTML(){
       ${galleryMediaHTML(t,true)}
       <h3 style="color:var(--gold);margin-top:12px">${esc(t.title)}</h3>
       ${t.sub?`<p class="small muted"><span data-gallery-side-label>${esc(t.sub)}</span></p>`:''}
-      ${t.flavor?`<p style="color:#e3d7b8;font-style:italic;margin-top:8px">${esc(t.flavor)}</p>`:''}
+      ${t.flippable?gallerySideQuoteHTML(t):''}
+      ${t.flavor?`<p class="gallery-flavor">${esc(t.flavor)}</p>`:''}
       ${t.flippable?'<p class="small muted" style="margin-top:8px">Use the turn button on the card to compare its two faces.</p>':''}
     </div>
     <div class="btnrow" style="justify-content:center;margin-top:16px"><button class="primary" onclick="closeGalleryDetail()">← Back to the Gallery</button></div>`;
