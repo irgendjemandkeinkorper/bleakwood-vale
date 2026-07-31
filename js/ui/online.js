@@ -21,7 +21,33 @@ import {
    actions above write to Firestore. Reset whenever the underlying
    room-driven phase changes shape from under it. */
 let draft = {};
-function resetDraft(){ draft = {}; }
+let draftContext = null;
+function resetDraft(){ draft = {}; draftContext = null; }
+
+/* Room snapshots arrive for every other player's action too. Keep local
+   composition state while the player is still working in the same logical
+   action, and only clear it when the server moves the room to a new phase,
+   scene, or secret. Contribution counts intentionally do not belong in this
+   key: another player buying in should not erase a draft that is still valid. */
+function roomDraftContext(room){
+  if(!room) return null;
+  const journalLength = Array.isArray(room.journal) ? room.journal.length : 0;
+  if(room.phase==='archsetup') return `archsetup|${room.archIdx}`;
+  if(room.phase==='victim') return `victim|${room.victim?.facts?.length||0}`;
+  if(room.phase==='playing' && room.pendingSecret){
+    const u = room.pendingSecret;
+    return `secret|${room.act}|${journalLength}|${u.pi}|${u.secretIndex}|${u.journalIndex}`;
+  }
+  if(room.phase==='playing' && room.current){
+    const c = room.current;
+    return `scene|${room.act}|${journalLength}|${c.type}|${c.starter}|${c.archIdx}|${c.card?.title||''}`;
+  }
+  return `${room.phase}|${room.act??0}|${journalLength}|${room.closeDone?'closed':'open'}`;
+}
+function preserveDraftFor(room){
+  const nextContext = roomDraftContext(room);
+  if(nextContext!==draftContext){ draft = {}; draftContext = nextContext; }
+}
 
 /* My own hand + Hidden Sin(s) — kept live via a subscription to my own
    private doc, never read from the public room object (Stage 4). */
@@ -93,6 +119,7 @@ export function showOnlineEntry(){
   unsubscribeRoom();
   unsubscribeMyPrivate();
   clearAdvanceTimer();
+  resetDraft();
   State.onlineRoomCode = null;
   State.G = null;
   $('scr-online-entry').innerHTML = `
@@ -158,6 +185,7 @@ export async function onlineJoinRoom(){
 function enterRoom(code){
   State.onlineRoomCode = code;
   try { history.replaceState(null, '', '?room='+code); } catch(e){}
+  resetDraft();
   myPrivate = {hand:[], secrets:[]};
   lastClaimAttempt = -1;
   subscribeMyPrivate(code, getUid(), priv => { myPrivate = priv; });
@@ -168,6 +196,7 @@ export function leaveOnlineRoom(){
   unsubscribeRoom();
   unsubscribeMyPrivate();
   clearAdvanceTimer();
+  resetDraft();
   State.onlineRoomCode = null;
   State.G = null;
   try { history.replaceState(null, '', location.pathname); } catch(e){}
@@ -193,10 +222,10 @@ export async function tryAutoRejoin(){
 }
 
 /* ---------------- router ---------------- */
-function routeAndRender(room){
+export function routeAndRender(room){
   const animateSlot = sceneAnimationSlot(room);
   State.G = room;
-  resetDraft();
+  preserveDraftFor(room);
   reactToRoom(room);
   if(room.phase==='lobby'){ renderOnlineLobby(room); show('scr-online-lobby'); return; }
   if(room.phase==='finished' || room.act>3){ renderChronicle(false); show('scr-chronicle'); return; }

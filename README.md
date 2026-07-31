@@ -25,6 +25,22 @@ python3 -m http.server 8080
 # then visit http://localhost:8080/
 ```
 
+### Browser smoke test
+
+The dev-only browser smoke test covers solo setup through the first act hub,
+Gallery face/quote flipping, the online entry surface, and narrow-screen
+overflow. It does not create a Firebase room. Install Playwright and its
+Chromium browser in the environment used for checks, then run:
+
+```
+python3 -m pip install playwright
+playwright install chromium
+python3 scripts/smoke.py
+```
+
+Production remains a dependency-free static site; these are local verification
+tools only.
+
 ## Project layout
 
 ```
