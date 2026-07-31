@@ -3,6 +3,7 @@ import { TONES } from '../data/index.js';
 import { actToneCounts } from '../engine/rules.js';
 import { State } from '../engine/state.js';
 import { mirrorState } from '../sync/rooms.js';
+import { hasSeenIntro, markIntroSeen } from '../engine/firstrun.js';
 
 /* ---------------- browser history (Back button) ----------------
    A lightweight stack riding on the History API: every screen swap and
@@ -67,6 +68,17 @@ export function initHistoryNav(){
       if(st.overlay && $('overlay').style.display!=='block') $('overlay').style.display='block';
     } finally { suppressHistory = false; }
   });
+}
+
+/* Title-screen first-run nudge — see js/engine/firstrun.js. Hidden
+   outright once the flag is set (no point re-adding it to the DOM only
+   to hide it again on every title-screen visit). */
+export function applyFirstrunVisibility(){
+  if(hasSeenIntro()){ const el = $('firstrun-hint'); if(el) el.style.display = 'none'; }
+}
+export function dismissFirstrunHint(){
+  markIntroSeen();
+  const el = $('firstrun-hint'); if(el) el.style.display = 'none';
 }
 
 export function renderTopbar(){

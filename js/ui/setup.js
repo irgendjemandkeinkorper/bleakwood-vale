@@ -1,11 +1,14 @@
-import { $, esc, shuffle, ROMAN, toneBadge } from '../engine/utils.js';
+import { $, esc, shuffle, ROMAN, toneBadge, progressDotsHTML } from '../engine/utils.js';
 import { HOOKS, ARCHETYPES, SECRETS, OMENS, ACT_CLOSES } from '../data/index.js';
 import { State } from '../engine/state.js';
 import { show } from './screens.js';
 import { startAct } from './hub.js';
+import { hasSeenIntro } from '../engine/firstrun.js';
 
 /* ---------------- setup: hooks ---------------- */
 export function renderHooks(){
+  const hintEl = $('hook-firsttime-hint');
+  if(hintEl) hintEl.style.display = hasSeenIntro() ? 'none' : 'flex';
   $('hook-list').innerHTML = HOOKS.map((h,i)=>`
     <div class="hookcard" onclick="chooseHook(${i})">
       <div class="sc" style="color:var(--blood-bright);font-size:.75rem;letter-spacing:.25em">INCIDENT ${ROMAN[i+1]}</div>
@@ -58,7 +61,8 @@ export function renderArchSetup(){
   const i = G.archIdx, a = G.archetypes[i];
   const answerer = G.players[i % G.players.length];
   $('scr-archsetup').innerHTML = `
-    <p class="center muted sc" style="letter-spacing:.2em">ESTABLISHING THE DEAD — QUESTION ${ROMAN[i+1]} OF VI</p>
+    <p class="center muted sc" style="letter-spacing:.2em">ESTABLISHING THE DEAD</p>
+    ${progressDotsHTML(i, 6, `Question ${ROMAN[i+1]} of VI`)}
     <div class="ornament">❦</div>
     <div style="max-width:640px;margin:0 auto">
       <div class="card">

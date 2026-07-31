@@ -1,10 +1,11 @@
-import { $, esc, nl2br, toneBadge, ACT_NAMES, ROMAN } from '../engine/utils.js';
+import { $, esc, nl2br, toneBadge, ACT_NAMES, ROMAN, progressDotsHTML, actTrackHTML } from '../engine/utils.js';
 import { HOOKS, TONES } from '../data/index.js';
 import { State } from '../engine/state.js';
 import { show } from './screens.js';
-import { archCard, omenCard, sceneCardHTML, journalEntrySummaryHTML } from './cards.js';
+import { archCard, omenCard, sceneCardHTML, journalEntrySummaryHTML, sceneAnatomyDiagramHTML } from './cards.js';
 import { faceUp, maxContrib, actToneCounts } from '../engine/rules.js';
 import { renderChronicle } from './renderChronicle.js';
+import { hasSeenIntro, markIntroSeen } from '../engine/firstrun.js';
 import { createRoom, joinRoom, subscribeRoom, unsubscribeRoom, subscribeMyPrivate, unsubscribeMyPrivate } from '../sync/liveRoom.js';
 import { getUid, ensureSignedIn } from '../sync/auth.js';
 import {
@@ -237,7 +238,8 @@ function renderOnlineArchSetup(room){
   const isMe = mySeatIndex(room) === (i % room.players.length);
   const showForm = isMe || draft.answeringForAbsent;
   $('scr-archsetup').innerHTML = `
-    <p class="center muted sc" style="letter-spacing:.2em">ESTABLISHING THE DEAD — QUESTION ${ROMAN[i+1]} OF VI</p>
+    <p class="center muted sc" style="letter-spacing:.2em">ESTABLISHING THE DEAD</p>
+    ${progressDotsHTML(i, 6, `Question ${ROMAN[i+1]} of VI`)}
     <div class="ornament">❦</div>
     <div style="max-width:640px;margin:0 auto">
       <div class="card">
@@ -301,10 +303,10 @@ function renderOnlineHub(room){
   $('scr-hub').innerHTML = `
     <h2 class="center" style="margin-top:8px">${ACT_NAMES[room.act]}</h2>
     <p class="center muted">${esc(room.hook.title)} · The Victim: ${esc(room.victim.name)}</p>
+    ${actTrackHTML(room.act)}
     <div class="ornament">✦ ❦ ✦</div>
     ${banner}
-    ${room.journal.length ? `<h3 style="color:var(--gold)">Last Scene</h3>${journalEntrySummaryHTML(room.journal[room.journal.length-1], {compact:true})}` : ''}
-    <div class="panel tight">
+    <div class="panel spotlight">
       <h3 style="color:var(--gold)">The Table</h3>
       <p class="small muted">${remaining} scene${remaining===1?'':'s'} remain${remaining===1?'s':''} before the Act closes.</p>
       <div class="btnrow">
@@ -321,23 +323,35 @@ function renderOnlineHub(room){
         }).join('')}
       </div>
     </div>
+    ${room.journal.length ? `<h3 style="color:var(--gold)">Last Scene</h3>${journalEntrySummaryHTML(room.journal[room.journal.length-1], {compact:true})}` : ''}
     <div class="panel tight">
       <h3 style="color:var(--blood-bright)">The Act Close — foreseen</h3>
       <p><span class="sc" style="color:#eddfba">${esc(close.title)}.</span> <span class="muted small">${esc(close.cond)}</span></p>
       <p class="small" style="color:#cfc2a2">${esc(close.prompt)}</p>
       <p class="small muted">${TONES.map(t=>`${toneBadge(t)} <span>${esc(close.elements[t])}</span>`).join('<br>')}</p>
     </div>
-    <h3 style="color:var(--gold);margin-top:18px">The Archetypes</h3>
-    <div class="pgrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:8px">
-      ${room.archetypes.map(a=>archCard(a)).join('')}
-    </div>
-    <h3 style="color:var(--gold);margin-top:18px">The Omen Row</h3>
-    <div class="cardgrid compact">${room.omenRow.map(o=>omenCard(o)).join('')}</div>
-    <h3 style="color:var(--gold);margin-top:18px">The Storytellers</h3>
-    <div class="pgrid" style="margin-top:8px">
-      ${room.players.map((p,i)=>onlinePlayerPanel(p,i,i===mySeat,room)).join('')}
-    </div>
-    <p class="small muted" style="margin-top:10px">Scene deck: ${room.sceneDeck.length} card${room.sceneDeck.length===1?'':'s'} remaining · Omen deck: ${room.omenDeck.length}</p>`;
+    <details class="disclose" open>
+      <summary>The Archetypes <span class="small muted">(${room.archetypes.length})</span></summary>
+      <div class="disclose-body">
+        <div class="pgrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:8px">
+          ${room.archetypes.map(a=>archCard(a)).join('')}
+        </div>
+      </div>
+    </details>
+    <details class="disclose" open>
+      <summary>The Omen Row <span class="small muted">(${room.omenRow.length})</span></summary>
+      <div class="disclose-body">
+        <div class="cardgrid compact">${room.omenRow.map(o=>omenCard(o)).join('')}</div>
+      </div>
+    </details>
+    <details class="disclose">
+      <summary>The Storytellers <span class="small muted">${room.players.length} in play · Scene deck ${room.sceneDeck.length} · Omen deck ${room.omenDeck.length}</span></summary>
+      <div class="disclose-body">
+        <div class="pgrid" style="margin-top:8px">
+          ${room.players.map((p,i)=>onlinePlayerPanel(p,i,i===mySeat,room)).join('')}
+        </div>
+      </div>
+    </details>`;
 }
 function onlinePlayerPanel(p, i, isMe, room){
   // Stage 4: hand/secrets are private. My own panel shows the real
@@ -389,6 +403,7 @@ function renderOnlineCloseIntro(room){
   const chosenTone = tied[0];
   $('scr-close').innerHTML = `
     <h2 class="center" style="color:var(--blood-bright)">${ACT_NAMES[room.act]} draws to a close</h2>
+    ${actTrackHTML(room.act)}
     <div class="ornament">✦</div>
     <div style="max-width:720px;margin:0 auto">
       <div class="card">
@@ -396,7 +411,7 @@ function renderOnlineCloseIntro(room){
         <div class="c-title" style="font-size:1.4rem">${esc(close.title)}</div>
         <div class="c-prompt">${esc(close.prompt)}</div>
       </div>
-      <div class="panel">
+      <div class="panel spotlight">
         <p class="small" style="color:var(--gold)">${esc(close.cond)}</p>
         <p class="small muted">Tones this act: ${TONES.map(t=>`<span class="tone count ${t}">${counts[t]}</span>`).join(' ')}</p>
         ${tied.length===1
@@ -428,7 +443,14 @@ export async function onlineBeginClose(){
 /* ---------------- scene: pick ---------------- */
 function renderOnlineScenePick(){
   const room = State.G;
+  const primerHTML = !hasSeenIntro() ? `
+    <div class="panel spotlight">
+      <h3 style="color:var(--gold)">Before your first scene</h3>
+      ${sceneAnatomyDiagramHTML()}
+      <div class="btnrow"><button class="primary" onclick="onlineDismissScenePrimer()">Got it — begin</button></div>
+    </div>` : '';
   $('scr-scene').innerHTML = `
+    ${primerHTML}
     <h2 class="center">You begin a scene</h2>
     <div class="ornament">❦</div>
     <h3 style="color:var(--gold)">Choose a scene card from your hand</h3>
@@ -446,6 +468,7 @@ function renderOnlineScenePick(){
       </div>
     </div>`;
 }
+export function onlineDismissScenePrimer(){ markIntroSeen(); renderOnlineScenePick(); }
 export function onlinePickSceneCard(i){
   draft.cardIdx = i;
   document.querySelectorAll('[id^="scene-pick-"]').forEach(el=>el.classList.remove('selected'));
@@ -513,7 +536,7 @@ function renderOnlineScene(room){
   }
 
   const endSceneHTML = iAmStarter ? (!draft.resolving ? `
-    <div class="panel">
+    <div class="panel spotlight">
       <label class="fld">The record of what happens</label>
       <textarea id="scene-happened" style="min-height:130px" oninput="onlineSetSceneHappened(this.value)" placeholder="What the Chronicle will remember of this scene…">${esc(draft.happened||'')}</textarea>
       <div class="btnrow"><button class="blood" onclick="onlineEndScene()">The scene ends</button></div>
@@ -566,7 +589,7 @@ export function onlineEndScene(){
 function renderOnlineResolveInline(room){
   const c = room.current;
   return `
-    <div class="panel">
+    <div class="panel spotlight">
       <h3 style="color:var(--gold)">Consult each archetype’s face-up condition</h3>
       <p class="small muted">If it was met in this scene, check it to turn the card.</p>
       ${room.archetypes.map((a,i)=>{
@@ -612,7 +635,7 @@ function renderOnlineSecret(room){
       </div>
       <h3 style="color:#c9b3de;margin-top:16px">Choose three omens <span class="small">(${sel.length} of ${Math.min(3,room.omenRow.length)})</span></h3>
       <div class="cardgrid compact">${room.omenRow.map((o,i)=>omenCard(o,'onlineToggleSecretOmen',i)).join('')}</div>
-      <div class="panel">
+      <div class="panel spotlight">
         <label class="fld" style="color:#c9b3de">The vignette</label>
         <textarea id="secret-answer" style="min-height:120px" oninput="onlineSetSecretAnswer(this.value)">${esc(draft.secretAnswer||'')}</textarea>
         <div class="btnrow"><button class="primary" ${sel.length!==Math.min(3,room.omenRow.length)?'disabled':''} onclick="onlineConfirmSecret()">So It Is Revealed</button></div>

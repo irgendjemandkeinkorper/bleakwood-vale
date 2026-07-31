@@ -2,7 +2,7 @@
    onclick/oninput/onchange attributes in index.html onto window — ES
    modules are not global scope, so this is the one place that bridges
    the two. Everything else stays module-scoped. */
-import { show, closeOverlay, initHistoryNav } from './ui/screens.js';
+import { show, closeOverlay, initHistoryNav, applyFirstrunVisibility, dismissFirstrunHint } from './ui/screens.js';
 import { flipArchCard } from './ui/cards.js';
 import { showIdleClicker, idleClick } from './ui/idle.js';
 import { showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail,
@@ -12,7 +12,7 @@ import { renderHooks, chooseHook, renderPlayerInputs, confirmPlayers,
 import { renderHub, tradeOmen, forfeitScene, beginClose } from './ui/hub.js';
 import { startSceneFor, pickSceneCard, pickArch, beginScene, pickContrib,
          pickContribScene, pickContribOmen, confirmContrib, cancelContrib,
-         setContribHow, setSceneHappened } from './ui/scene.js';
+         setContribHow, setSceneHappened, dismissScenePrimer } from './ui/scene.js';
 import { endScene, applyResolve, toggleSecretOmen, confirmSecret } from './ui/resolve.js';
 import { viewChronicle, returnFromChronicle, toggleStrike, showRules,
          initOverlayDismiss } from './ui/renderChronicle.js';
@@ -27,16 +27,16 @@ import {
   onlineSetContribHow, onlineSetSceneHappened, onlineSetSecretAnswer,
   onlineConfirmContrib, onlineEndScene, onlineApplyResolve,
   onlineToggleSecretOmen, onlineConfirmSecret,
-  onlineAnswerForAbsent, onlineCopyRoomLink
+  onlineAnswerForAbsent, onlineCopyRoomLink, onlineDismissScenePrimer
 } from './ui/online.js';
 
 Object.assign(window, {
-  show, flipArchCard, showIdleClicker, idleClick,
+  show, flipArchCard, showIdleClicker, idleClick, dismissFirstrunHint,
   showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail, closeGalleryDetail, galleryImgError,
   chooseHook, renderPlayerInputs, confirmPlayers, beginArchSetup, saveArchSetup, finishVictim,
   renderHub, tradeOmen, forfeitScene, beginClose,
   startSceneFor, pickSceneCard, pickArch, beginScene, pickContrib, pickContribScene, pickContribOmen,
-  confirmContrib, cancelContrib, setContribHow, setSceneHappened,
+  confirmContrib, cancelContrib, setContribHow, setSceneHappened, dismissScenePrimer,
   endScene, applyResolve, toggleSecretOmen, confirmSecret,
   viewChronicle, returnFromChronicle, toggleStrike, showRules, closeOverlay,
   copyChronicle, downloadChronicle,
@@ -48,12 +48,13 @@ Object.assign(window, {
   onlineSetContribHow, onlineSetSceneHappened, onlineSetSecretAnswer,
   onlineConfirmContrib, onlineEndScene, onlineApplyResolve,
   onlineToggleSecretOmen, onlineConfirmSecret,
-  onlineAnswerForAbsent, onlineCopyRoomLink
+  onlineAnswerForAbsent, onlineCopyRoomLink, onlineDismissScenePrimer
 });
 
 /* ---------------- init ---------------- */
 renderHooks();
 renderPlayerInputs();
+applyFirstrunVisibility();
 initOverlayDismiss();
 initHistoryNav();
 ensureSignedIn()

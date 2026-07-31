@@ -150,6 +150,50 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
   padding:18px 20px;margin:14px 0;border-radius:2px;
 }
 .panel.tight{padding:12px 14px}
+/* the one thing to do on this screen right now */
+.panel.spotlight{
+  border-color:var(--blood-bright);
+  box-shadow:0 0 0 1px rgba(165,42,56,.25), 0 0 26px rgba(165,42,56,.12);
+  background:linear-gradient(180deg, rgba(40,20,20,.55), rgba(18,14,9,.85));
+}
+
+/* ---------- reference-material disclosure (generalizes .secretbox) ---------- */
+.disclose{border:1px solid rgba(176,141,63,.3);border-radius:2px;background:rgba(20,16,10,.5);margin:14px 0}
+.disclose>summary{
+  cursor:pointer;padding:10px 14px;font-family:'IM Fell English SC',serif;color:var(--gold);
+  letter-spacing:.06em;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;
+}
+.disclose>summary::-webkit-details-marker{display:none}
+.disclose>summary::after{content:'▸';transition:transform .2s ease;color:var(--gold-soft);flex:none}
+.disclose[open]>summary::after{transform:rotate(90deg)}
+.disclose>.disclose-body{padding:0 14px 14px}
+
+/* ---------- dismissible first-run hint ---------- */
+.hint{
+  border-left:3px solid var(--gold);background:rgba(176,141,63,.08);
+  padding:8px 12px;margin:10px 0;font-size:.85rem;color:#dcd0ab;
+  display:flex;gap:8px;align-items:flex-start;text-align:left;
+}
+.hint .hint-x{cursor:pointer;margin-left:auto;color:var(--gold-soft);flex:none}
+.hint .hint-x:hover{color:var(--gold)}
+
+/* ---------- progress dots (archetype setup) ---------- */
+.progress-dots{display:flex;gap:8px;justify-content:center;align-items:center;margin:10px 0;flex-wrap:wrap}
+.progress-dots .pd-dot{width:9px;height:9px;border-radius:50%;background:rgba(176,141,63,.25);border:1px solid rgba(176,141,63,.4)}
+.progress-dots .pd-dot.done{background:var(--gold);border-color:var(--gold)}
+.progress-dots .pd-dot.current{background:var(--blood-bright);border-color:var(--blood-bright);box-shadow:0 0 8px rgba(165,42,56,.5)}
+.progress-dots .pd-label{margin-left:10px;font-size:.78rem;letter-spacing:.15em;color:var(--gold);font-family:'IM Fell English SC',serif;text-transform:uppercase}
+
+/* ---------- act track (three-act structure) ---------- */
+.act-track{display:flex;gap:6px;align-items:center;justify-content:center;margin:8px 0}
+.act-track .at-node{
+  width:20px;height:20px;border-radius:50%;border:1px solid var(--gold-soft);
+  display:flex;align-items:center;justify-content:center;font-size:.65rem;color:var(--gold-soft);
+  font-family:'IM Fell English SC',serif;flex:none;
+}
+.act-track .at-node.done{background:var(--gold);color:#12100a;border-color:var(--gold)}
+.act-track .at-node.current{border-color:var(--blood-bright);color:#e8c9c9;box-shadow:0 0 6px rgba(165,42,56,.4)}
+.act-track .at-line{width:16px;height:1px;background:rgba(176,141,63,.3);flex:none}
 
 /* ---------- paper cards ---------- */
 .card{

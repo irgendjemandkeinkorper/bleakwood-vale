@@ -1,8 +1,9 @@
 import { $, esc, nl2br, toneBadge, ACT_NAMES } from '../engine/utils.js';
 import { State } from '../engine/state.js';
 import { show } from './screens.js';
-import { archCard, omenCard, sceneCardHTML } from './cards.js';
+import { archCard, omenCard, sceneCardHTML, sceneAnatomyDiagramHTML } from './cards.js';
 import { eligibleContributors, maxContrib } from '../engine/rules.js';
+import { hasSeenIntro, markIntroSeen } from '../engine/firstrun.js';
 
 /* ---------------- scenes ---------------- */
 export function startSceneFor(pi){
@@ -14,7 +15,14 @@ export function startSceneFor(pi){
 export function renderScenePick(){
   const G = State.G;
   const c = G.current, p = G.players[c.starter];
+  const primerHTML = !hasSeenIntro() ? `
+    <div class="panel spotlight">
+      <h3 style="color:var(--gold)">Before your first scene</h3>
+      ${sceneAnatomyDiagramHTML()}
+      <div class="btnrow"><button class="primary" onclick="dismissScenePrimer()">Got it — begin</button></div>
+    </div>` : '';
   $('scr-scene').innerHTML = `
+    ${primerHTML}
     <h2 class="center">${esc(p.name)} begins a scene</h2>
     <div class="ornament">❦</div>
     <h3 style="color:var(--gold)">Choose a scene card from your hand</h3>
@@ -33,6 +41,7 @@ export function renderScenePick(){
       </div>
     </div>`;
 }
+export function dismissScenePrimer(){ markIntroSeen(); renderScenePick(); }
 export function pickSceneCard(i){
   State.G.current.cardIdx = i;
   document.querySelectorAll('[id^="scene-pick-"]').forEach(el=>el.classList.remove('selected'));
@@ -120,7 +129,7 @@ export function renderScenePlay(){
       ${addingHTML}
     </div>
 
-    <div class="panel">
+    <div class="panel spotlight">
       <label class="fld">The record of what happens</label>
       <p class="small muted" style="margin-bottom:6px">Play the scene aloud — narrate, act, cast one another in roles. Note here what the Chronicle should remember: who appeared, what was said, what was discovered.</p>
       <textarea id="scene-happened" style="min-height:130px" oninput="setSceneHappened(this.value)" placeholder="What the Chronicle will remember of this scene…">${esc(c.happened||'')}</textarea>

@@ -30,6 +30,51 @@ export function archCard(a, selectable, idx){
 export function flipArchCard(btn){
   btn.closest('.arch-flip')?.classList.toggle('peeking');
 }
+
+/* The 4-step "Begin → Buy In → Narrate → Resolve" diagram. Shared by the
+   Rules overlay (js/ui/renderChronicle.js showRules()) and the inline
+   first-scene primer (js/ui/scene.js), so the two never drift apart. */
+export function sceneAnatomyDiagramHTML(){
+  return `<div class="turn-diagram">
+    <div class="td-step">
+      <div class="td-num">1</div>
+      <div class="td-label">Begin</div>
+      <div class="td-visual">
+        <div class="card mini"><div class="c-kicker">Scene</div><div class="c-title">The Wake</div></div>
+        <div class="arch mini"><div class="a-name">The Disgraced Alienist</div></div>
+      </div>
+      <div class="td-caption">Pick a scene card and the archetype who leads it.</div>
+    </div>
+    <div class="td-arrow">→</div>
+    <div class="td-step">
+      <div class="td-num">2</div>
+      <div class="td-label">Buy In</div>
+      <div class="td-visual">
+        <div class="minicard omen">☽ A Tarnished Pocket Watch</div>
+        <div class="minicard">A Letter, Unsent</div>
+      </div>
+      <div class="td-caption">Up to two others each play a card, describing how it manifests.</div>
+    </div>
+    <div class="td-arrow">→</div>
+    <div class="td-step">
+      <div class="td-num">3</div>
+      <div class="td-label">Narrate</div>
+      <div class="td-visual">
+        <p class="small" style="font-style:italic;color:#cfc2a2">“The camera drifts through the fog toward a lit window…”</p>
+      </div>
+      <div class="td-caption">Play it out aloud, together, until the starter ends it.</div>
+    </div>
+    <div class="td-arrow">→</div>
+    <div class="td-step">
+      <div class="td-num">4</div>
+      <div class="td-label">Resolve</div>
+      <div class="td-visual">
+        <div style="display:flex;gap:4px">${toneBadge('Guilt')}${toneBadge('Dread')}</div>
+      </div>
+      <div class="td-caption">Check every archetype for a flip, then count the scene's tones.</div>
+    </div>
+  </div>`;
+}
 export function omenCard(o, selectable, idx){
   return `<div class="card omen${selectable?' selectable':''}" ${selectable?`onclick="${selectable}(${idx})" id="omen-pick-${idx}"`:''}>
     <div class="c-kicker">Omen</div>

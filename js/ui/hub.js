@@ -1,4 +1,4 @@
-import { $, esc, shuffle, toneBadge, ACT_NAMES } from '../engine/utils.js';
+import { $, esc, shuffle, toneBadge, ACT_NAMES, actTrackHTML } from '../engine/utils.js';
 import { TONES, SCENES } from '../data/index.js';
 import { State } from '../engine/state.js';
 import { show, renderTopbar } from './screens.js';
@@ -65,13 +65,10 @@ export function renderHub(){
   $('scr-hub').innerHTML = `
     <h2 class="center" style="margin-top:8px">${ACT_NAMES[G.act]}</h2>
     <p class="center muted">${esc(G.hook.title)} · The Victim: ${esc(G.victim.name)}</p>
+    ${actTrackHTML(G.act)}
     <div class="ornament">✦ ❦ ✦</div>
 
-    ${milestoneRailHTML(G)}
-
-    ${G.journal.length ? `<h3 style="color:var(--gold)">Last Scene</h3>${journalEntrySummaryHTML(G.journal[G.journal.length-1], {compact:true})}` : ''}
-
-    <div class="panel tight">
+    <div class="panel spotlight">
       <h3 style="color:var(--gold)">The Table</h3>
       <p class="small muted">Whoever has an idea first begins the next scene. ${remaining} scene${remaining===1?'':'s'} remain${remaining===1?'s':''} before the Act closes.</p>
       <div class="btnrow">
@@ -86,6 +83,10 @@ export function renderHub(){
       </div>
     </div>
 
+    ${milestoneRailHTML(G)}
+
+    ${G.journal.length ? `<h3 style="color:var(--gold)">Last Scene</h3>${journalEntrySummaryHTML(G.journal[G.journal.length-1], {compact:true})}` : ''}
+
     <div class="panel tight">
       <h3 style="color:var(--blood-bright)">The Act Close — foreseen</h3>
       <p><span class="sc" style="color:#eddfba">${esc(close.title)}.</span> <span class="muted small">${esc(close.cond)}</span></p>
@@ -93,20 +94,31 @@ export function renderHub(){
       <p class="small muted">${TONES.map(t=>`${toneBadge(t)} <span>${esc(close.elements[t])}</span>`).join('<br>')}</p>
     </div>
 
-    <h3 style="color:var(--gold);margin-top:18px">The Archetypes</h3>
-    <div class="pgrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:8px">
-      ${G.archetypes.map(a=>archCard(a)).join('')}
-    </div>
+    <details class="disclose" open>
+      <summary>The Archetypes <span class="small muted">(${G.archetypes.length})</span></summary>
+      <div class="disclose-body">
+        <div class="pgrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));margin-top:8px">
+          ${G.archetypes.map(a=>archCard(a)).join('')}
+        </div>
+      </div>
+    </details>
 
-    <h3 style="color:var(--gold);margin-top:18px">The Omen Row</h3>
-    <p class="small muted">Read them literally, metaphorically, or obliquely — as you see fit. They accrue meaning as they recur.</p>
-    <div class="cardgrid compact">${G.omenRow.map(o=>omenCard(o)).join('')}</div>
+    <details class="disclose" open>
+      <summary>The Omen Row <span class="small muted">(${G.omenRow.length})</span></summary>
+      <div class="disclose-body">
+        <p class="small muted">Read them literally, metaphorically, or obliquely — as you see fit. They accrue meaning as they recur.</p>
+        <div class="cardgrid compact">${G.omenRow.map(o=>omenCard(o)).join('')}</div>
+      </div>
+    </details>
 
-    <h3 style="color:var(--gold);margin-top:18px">The Storytellers</h3>
-    <div class="pgrid" style="margin-top:8px">
-      ${G.players.map((p,i)=>playerPanel(p,i)).join('')}
-    </div>
-    <p class="small muted" style="margin-top:10px">Scene deck: ${G.sceneDeck.length} card${G.sceneDeck.length===1?'':'s'} remaining · Omen deck: ${G.omenDeck.length}</p>`;
+    <details class="disclose">
+      <summary>The Storytellers <span class="small muted">${G.players.length} in play · Scene deck ${G.sceneDeck.length} · Omen deck ${G.omenDeck.length}</span></summary>
+      <div class="disclose-body">
+        <div class="pgrid" style="margin-top:8px">
+          ${G.players.map((p,i)=>playerPanel(p,i)).join('')}
+        </div>
+      </div>
+    </details>`;
   renderTopbar();
 }
 
@@ -148,6 +160,7 @@ export function renderCloseIntro(){
       tied.map((t,i)=>`<p><label style="cursor:pointer"><input type="radio" name="close-el" value="${t}" style="width:auto" ${i===0?'checked':''}> ${toneBadge(t)} <span class="small">${esc(close.elements[t])}</span></label></p>`).join('');
   $('scr-close').innerHTML = `
     <h2 class="center" style="color:var(--blood-bright)">${ACT_NAMES[G.act]} draws to a close</h2>
+    ${actTrackHTML(G.act)}
     <div class="ornament">✦</div>
     <div style="max-width:720px;margin:0 auto">
       <div class="card">
@@ -155,7 +168,7 @@ export function renderCloseIntro(){
         <div class="c-title" style="font-size:1.4rem">${esc(close.title)}</div>
         <div class="c-prompt">${esc(close.prompt)}</div>
       </div>
-      <div class="panel">
+      <div class="panel spotlight">
         <p class="small" style="color:var(--gold)">${esc(close.cond)}</p>
         <p class="small muted">The tally of tones this act — from every card played and every archetype’s face — stands at:
         ${TONES.map(t=>`<span class="tone count ${t}">${counts[t]}</span>`).join(' ')}</p>

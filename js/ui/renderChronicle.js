@@ -1,9 +1,11 @@
 import { $, esc, nl2br, toneBadge, ACT_NAMES } from '../engine/utils.js';
 import { TONES, TONE_GLOSS, EPILOGUE_QUESTIONS } from '../data/index.js';
 import { State } from '../engine/state.js';
-import { show, openOverlay, closeOverlay } from './screens.js';
+import { show, openOverlay, closeOverlay, dismissFirstrunHint } from './screens.js';
 import { faceUp } from '../engine/rules.js';
 import { liveToggleStrike } from '../sync/liveActions.js';
+import { sceneAnatomyDiagramHTML } from './cards.js';
+import { markIntroSeen } from '../engine/firstrun.js';
 
 /* ---------------- the chronicle ---------------- */
 export function viewChronicle(interim){
@@ -93,6 +95,10 @@ export function toggleStrike(gi, interim){
 
 /* ---------------- rules overlay ---------------- */
 export function showRules(){
+  // Reading the rules from any entry point (title screen, hook select,
+  // scene primer) permanently retires this device's first-run nudges.
+  markIntroSeen();
+  dismissFirstrunHint();
   $('overlay-content').innerHTML = `
     <h2 style="color:var(--gold)">How the Tale Is Told</h2>
     <div class="panel tight small" style="line-height:1.7">
@@ -100,45 +106,7 @@ export function showRules(){
     </div>
 
     <h3 class="center" style="color:var(--gold);margin-top:16px">Anatomy of a Scene</h3>
-    <div class="turn-diagram">
-      <div class="td-step">
-        <div class="td-num">1</div>
-        <div class="td-label">Begin</div>
-        <div class="td-visual">
-          <div class="card mini"><div class="c-kicker">Scene</div><div class="c-title">The Wake</div></div>
-          <div class="arch mini"><div class="a-name">The Disgraced Alienist</div></div>
-        </div>
-        <div class="td-caption">Pick a scene card and the archetype who leads it.</div>
-      </div>
-      <div class="td-arrow">→</div>
-      <div class="td-step">
-        <div class="td-num">2</div>
-        <div class="td-label">Buy In</div>
-        <div class="td-visual">
-          <div class="minicard omen">☽ A Tarnished Pocket Watch</div>
-          <div class="minicard">A Letter, Unsent</div>
-        </div>
-        <div class="td-caption">Up to two others each play a card, describing how it manifests.</div>
-      </div>
-      <div class="td-arrow">→</div>
-      <div class="td-step">
-        <div class="td-num">3</div>
-        <div class="td-label">Narrate</div>
-        <div class="td-visual">
-          <p class="small" style="font-style:italic;color:#cfc2a2">“The camera drifts through the fog toward a lit window…”</p>
-        </div>
-        <div class="td-caption">Play it out aloud, together, until the starter ends it.</div>
-      </div>
-      <div class="td-arrow">→</div>
-      <div class="td-step">
-        <div class="td-num">4</div>
-        <div class="td-label">Resolve</div>
-        <div class="td-visual">
-          <div style="display:flex;gap:4px">${toneBadge('Guilt')}${toneBadge('Dread')}</div>
-        </div>
-        <div class="td-caption">Check every archetype for a flip, then count the scene's tones.</div>
-      </div>
-    </div>
+    ${sceneAnatomyDiagramHTML()}
 
     <div class="panel tight small" style="line-height:1.7">
       <p><strong style="color:var(--gold)">Beginning a scene.</strong> Choose a scene card from your hand and an archetype to lead it. Describe what the camera sees as the scene opens, then narrate freely — as director, as actor, or both. Cast the others in roles; no one owns any character. The prompt on the card is a door, not a cage.</p>
