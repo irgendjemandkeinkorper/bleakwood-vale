@@ -108,6 +108,68 @@ let vaultCount = 0;
 vaultEntities.forEach(e => {
   const dir = path.join(VAULT, `${e.type}s`);
   fs.mkdirSync(dir, { recursive: true });
+
+  const filePath = path.join(dir, `${e.id}.md`);
+  const existingImages = {};
+  const unrelatedFields = [];
+
+  if (fs.existsSync(filePath)) {
+    const content = fs.readFileSync(filePath, 'utf-8');
+
+    // Check if starts with ---
+    if (!content.startsWith('---\n') && !content.startsWith('---\r\n')) {
+      throw new Error(`Malformed frontmatter in ${filePath}: File does not start with '---'`);
+    }
+
+    const rest = content.substring(content.indexOf('\n') + 1);
+    const endBoundaryIndex = rest.search(/^(?:---)(?:\r?\n|$)/m);
+
+    if (endBoundaryIndex === -1) {
+      throw new Error(`Malformed frontmatter in ${filePath}: Closing '---' boundary not found`);
+    }
+
+    const fmText = rest.substring(0, endBoundaryIndex);
+    const fmLines = fmText.split(/\r?\n/);
+    const parsedFields = {};
+
+    for (let i = 0; i < fmLines.length; i++) {
+      const line = fmLines[i];
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      const colonIdx = line.indexOf(':');
+      if (colonIdx === -1) {
+        throw new Error(`Malformed frontmatter in ${filePath} at line ${i + 2}: Missing colon separator in line "${line}"`);
+      }
+
+      const key = line.substring(0, colonIdx).trim();
+      const val = line.substring(colonIdx + 1).trim();
+
+      if (!key) {
+        throw new Error(`Malformed frontmatter in ${filePath} at line ${i + 2}: Empty key in line "${line}"`);
+      }
+
+      parsedFields[key] = val;
+    }
+
+    const standardKeys = new Set([
+      'id', 'name', 'type', 'tags', 'related', 'summary',
+      'image_painterly_front', 'image_painterly_turned',
+      'image_tarot_front', 'image_tarot_turned',
+      'image_painterly', 'image_tarot'
+    ]);
+
+    for (const [key, val] of Object.entries(parsedFields)) {
+      if (key.startsWith('image_') && standardKeys.has(key)) {
+        if (val) {
+          existingImages[key] = val;
+        }
+      } else if (!standardKeys.has(key)) {
+        unrelatedFields.push({ key, val });
+      }
+    }
+  }
+
   const fmLines = [
     '---',
     `id: ${e.id}`,
@@ -116,11 +178,16 @@ vaultEntities.forEach(e => {
     `tags: [${e.tags.map(t=>JSON.stringify(t)).join(', ')}]`,
     e.related ? `related: [${e.related.map(t=>JSON.stringify(t)).join(', ')}]` : null,
     `summary: ${JSON.stringify(e.summary)}`,
-    ...e.images.map(im => `${im.field}: ${im.url || ''}`),
+    ...e.images.map(im => {
+      const val = existingImages[im.field] || im.url || '';
+      return `${im.field}: ${val}`;
+    }),
+    ...unrelatedFields.map(field => `${field.key}: ${field.val}`),
     '---'
   ].filter(l => l !== null);
+
   const fm = fmLines.join('\n') + '\n';
-  fs.writeFileSync(path.join(dir, `${e.id}.md`), fm + '\n' + e.body);
+  fs.writeFileSync(filePath, fm + '\n' + e.body);
   vaultCount++;
 });
 console.log('Wrote', vaultCount, 'vault entity files');
