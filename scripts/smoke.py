@@ -89,24 +89,40 @@ def run() -> None:
             page.get_by_role(
                 "button", name="Begin the Tale (this screen)", exact=True
             ).click()
-            page.locator(".hookcard").first.click()
+            assert "STEP 1 OF 5" in page.locator("#setup-progress-hook").inner_text().upper()
+            page.locator(".hookcard").first.get_by_role(
+                "button", name="Choose this Incident", exact=True
+            ).click()
+            assert "STEP 2 OF 5" in page.locator("#setup-progress-players").inner_text().upper()
             page.select_option("#pl-count", "1")
             page.fill("#pl-name-0", "Smoke Tester")
             page.locator('input[name="art-style"][value="painterly"]').evaluate(
                 "element => { element.checked = true; element.dispatchEvent(new Event('change', { bubbles: true })); }"
             )
             page.get_by_role("button", name="Light the Candles", exact=True).click()
+            assert "STEP 3 OF 5" in page.locator("#setup-progress-intro").inner_text().upper()
             page.get_by_role("button", name="So It Begins", exact=True).click()
+            assert "STEP 4 OF 5" in page.locator("#scr-archsetup .setup-progress").inner_text().upper()
 
             for index in range(6):
                 page.fill("#arch-name", f"Smoke Archetype {index + 1}")
                 page.fill("#arch-answer", f"Smoke fact {index + 1}")
                 page.locator("#scr-archsetup button.primary").click()
 
+            assert "STEP 5 OF 5" in page.locator("#scr-victim .setup-progress").inner_text().upper()
             page.fill("#victim-name", "The Smoke Test Victim")
             page.get_by_role("button", name="Deal the Cards", exact=True).click()
             page.wait_for_selector("#scr-hub.active")
             assert "ACT THE FIRST" in page.locator("#tb-act").inner_text().upper()
+
+            # First-scene primer appears once, then yields to scene setup.
+            page.get_by_role("button", name="Begin a scene", exact=True).click()
+            page.wait_for_selector("#scr-scene.active")
+            assert page.locator("#scr-scene .turn-diagram").count() == 1
+            page.get_by_role("button", name="Got it — begin", exact=True).click()
+            assert page.locator("#scr-scene #btn-begin").count() == 1
+            page.get_by_role("button", name="Back to the Table", exact=True).click()
+            page.wait_for_selector("#scr-hub.active")
 
             # Gallery: each archetype retains two distinct face quotes.
             page.locator(
@@ -135,6 +151,7 @@ def run() -> None:
             page.wait_for_selector("#scr-online-entry.active")
             assert page.locator("#oe-join-code").count() == 1
             assert page.locator("#oe-host-name").count() == 1
+            assert "STEP 1 OF 5" in page.locator("#scr-online-entry .setup-progress").inner_text().upper()
 
             # A same-action room snapshot must preserve an uncommitted buy-in
             # draft. This uses the public room renderer with a deterministic

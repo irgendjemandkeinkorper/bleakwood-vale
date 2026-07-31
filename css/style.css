@@ -183,6 +183,17 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
 .progress-dots .pd-dot.done{background:var(--gold);border-color:var(--gold)}
 .progress-dots .pd-dot.current{background:var(--blood-bright);border-color:var(--blood-bright);box-shadow:0 0 8px rgba(165,42,56,.5)}
 .progress-dots .pd-label{margin-left:10px;font-size:.78rem;letter-spacing:.15em;color:var(--gold);font-family:'IM Fell English SC',serif;text-transform:uppercase}
+.setup-progress{
+  max-width:760px;margin:8px auto 18px;padding:10px 14px;border:1px solid rgba(176,141,63,.28);
+  border-radius:2px;background:rgba(10,14,12,.48)
+}
+.setup-progress-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.setup-progress-head .sc{color:var(--blood-bright);font-size:.68rem;letter-spacing:.18em}
+.setup-progress-count{color:#9f9274;font-size:.7rem;letter-spacing:.1em;text-transform:uppercase}
+.setup-progress .progress-dots{margin:7px 0 3px;gap:7px}
+.setup-progress-copy{display:flex;justify-content:center;align-items:baseline;gap:8px;flex-wrap:wrap;text-align:center}
+.setup-progress-copy strong{color:#eddfba;font-family:'IM Fell English SC',serif;font-weight:normal;font-size:.95rem}
+.setup-progress-copy span{color:#a99b7d;font-size:.76rem}
 
 /* ---------- act track (three-act structure) ---------- */
 .act-track{display:flex;gap:6px;align-items:center;justify-content:center;margin:8px 0}
@@ -288,6 +299,7 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
 .hookcard:hover{border-color:var(--gold);box-shadow:0 0 24px rgba(176,141,63,.25);transform:translateY(-3px)}
 .hookcard h3{color:#eddfba;font-size:1.4rem}
 .hookcard .h-epi{font-style:italic;color:#b3a687;margin-top:8px;font-size:.95rem}
+.hookcard-action{width:100%;margin-top:auto}
 
 /* ---------- rules: "Anatomy of a Scene" diagram ---------- */
 .turn-diagram{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap;justify-content:center;margin:14px 0 20px}

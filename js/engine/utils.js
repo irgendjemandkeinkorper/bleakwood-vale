@@ -17,6 +17,22 @@ export function progressDotsHTML(current, total, label){
   return `<div class="progress-dots">${dots}<span class="pd-label">${esc(label)}</span></div>`;
 }
 
+/* Shared onboarding rail for local and online setup. The five broad steps
+   keep the next responsibility visible without replacing the more granular
+   six-question archetype progress shown during character establishment. */
+export function setupProgressHTML(step, label, detail){
+  const total = 5;
+  const dots = Array.from({length:total}, (_,i)=>{
+    const cls = i < step ? 'done' : i === step ? 'current' : '';
+    return `<span class="pd-dot ${cls}" aria-hidden="true"></span>`;
+  }).join('');
+  return `<div class="setup-progress" role="progressbar" aria-label="Table setup progress" aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${step+1}">
+    <div class="setup-progress-head"><span class="sc">TABLE SETUP</span><span class="setup-progress-count">Step ${step+1} of ${total}</span></div>
+    <div class="progress-dots" aria-hidden="true">${dots}</div>
+    <div class="setup-progress-copy"><strong>${esc(label)}</strong>${detail?`<span>${esc(detail)}</span>`:''}</div>
+  </div>`;
+}
+
 /* A three-node track marking which act is done/current/upcoming. */
 export function actTrackHTML(act){
   return `<div class="act-track">${[1,2,3].map((n,i)=>

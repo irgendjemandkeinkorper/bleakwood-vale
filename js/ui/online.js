@@ -1,4 +1,4 @@
-import { $, esc, toneBadge, ACT_NAMES, ROMAN, progressDotsHTML, actTrackHTML } from '../engine/utils.js';
+import { $, esc, toneBadge, ACT_NAMES, ROMAN, progressDotsHTML, setupProgressHTML, actTrackHTML } from '../engine/utils.js';
 import { HOOKS, TONES } from '../data/index.js';
 import { State } from '../engine/state.js';
 import { show } from './screens.js';
@@ -123,6 +123,7 @@ export function showOnlineEntry(){
   State.onlineRoomCode = null;
   State.G = null;
   $('scr-online-entry').innerHTML = `
+    ${setupProgressHTML(0,'Choose an Incident or join a table','Open a new premise or enter a room code from your host.')}
     <h2 class="center">Play Online</h2>
     <p class="center muted">Gather your table across separate screens. One person opens the tale; everyone else joins with the code.</p>
     <div class="ornament">❦</div>
@@ -250,6 +251,7 @@ function renderOnlineLobby(room){
   const emptySeats = Math.max(0, 6-seatCount);
   const style = ART_STYLES.find(s=>s.id===currentArtStyle(room));
   $('scr-online-lobby').innerHTML = `
+    ${setupProgressHTML(1,'Gather the Storytellers','Share the room code, then let the host begin the tale.')}
     <h2 class="center">The Table Gathers</h2>
     <div class="ornament">❦</div>
     <div class="panel" style="max-width:640px;margin:0 auto">
@@ -267,6 +269,10 @@ function renderOnlineLobby(room){
       </p>
       <p class="center"><button class="ghost" id="btn-copy-link" onclick="onlineCopyRoomLink()">Copy invite link</button></p>
       <p class="small muted center">Share the code or link — everyone else joins from “Play Online.”</p>
+      <details class="disclose" style="margin-top:14px">
+        <summary>Read the Incident aloud</summary>
+        <div class="disclose-body"><p class="small" style="color:#e3d7b8">${room.hook.intro}</p></div>
+      </details>
       <h3 style="color:var(--gold);margin-top:18px">Seated (${seatCount} of 6)</h3>
       <div class="btnrow">
         ${room.players.map((p,i)=>`<span class="pill">${i===0?'👑 ':''}${esc(p.name)}${p.uid===uid?' (you)':''}</span>`).join('')}
@@ -301,6 +307,7 @@ function renderOnlineArchSetup(room){
   const isMe = mySeatIndex(room) === (i % room.players.length);
   const showForm = isMe || draft.answeringForAbsent;
   $('scr-archsetup').innerHTML = `
+    ${setupProgressHTML(3,'Establish the Archetypes',`Question ${i+1} of six — ${esc(answerer.name)} answers next.`)}
     <p class="center muted sc" style="letter-spacing:.2em">ESTABLISHING THE DEAD</p>
     ${progressDotsHTML(i, 6, `Question ${ROMAN[i+1]} of VI`)}
     <div class="ornament">❦</div>
@@ -342,6 +349,7 @@ export async function onlineSaveArchSetup(){
 /* ---------------- victim ---------------- */
 function renderOnlineVictim(room){
   $('scr-victim').innerHTML = `
+    ${setupProgressHTML(4,'Name the Victim','Gather the six answers, then give the dead a name.')}
     <h2 class="center">The Victim</h2>
     <p class="center muted" style="max-width:640px;margin:6px auto">${room.hook.victimLine}</p>
     <div class="ornament">❦</div>

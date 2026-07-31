@@ -1,4 +1,4 @@
-import { $, esc, shuffle, ROMAN, toneBadge, progressDotsHTML } from '../engine/utils.js';
+import { $, esc, shuffle, ROMAN, toneBadge, progressDotsHTML, setupProgressHTML } from '../engine/utils.js';
 import { HOOKS, ARCHETYPES, SECRETS, OMENS, ACT_CLOSES } from '../data/index.js';
 import { State } from '../engine/state.js';
 import { show } from './screens.js';
@@ -8,6 +8,7 @@ import { artStylePickerHTML, archetypeArtHTML, hookArtHTML, victimArtHTML } from
 
 /* ---------------- setup: hooks ---------------- */
 export function renderHooks(){
+  $('setup-progress-hook').innerHTML = setupProgressHTML(0,'Choose an Incident','Pick the premise that sounds most interesting to your table.');
   const hintEl = $('hook-firsttime-hint');
   if(hintEl) hintEl.style.display = hasSeenIntro() ? 'none' : 'flex';
   $('hook-list').innerHTML = HOOKS.map((h,i)=>`
@@ -17,12 +18,14 @@ export function renderHooks(){
       <div class="h-epi">${h.epigraph}</div>
       <hr class="rule">
       <div class="small" style="color:#cfc2a2">${h.victimLine}</div>
+      <div class="btnrow" style="margin-top:16px"><button class="primary hookcard-action" onclick="event.stopPropagation();chooseHook(${i})">Choose this Incident</button></div>
     </div>`).join('');
 }
 export function chooseHook(i){ State.pendingHook = HOOKS[i]; show('scr-players'); renderPlayerInputs(); }
 
 /* ---------------- setup: players ---------------- */
 export function renderPlayerInputs(){
+  $('setup-progress-players').innerHTML = setupProgressHTML(1,'Gather the Storytellers','Set the table size, names, and shared card-art style.');
   const n = +$('pl-count').value;
   const selectedStyle = document.querySelector('input[name="art-style"]:checked')?.value || null;
   let html='';
@@ -62,6 +65,7 @@ export function confirmPlayers(){
   const G = State.G;
   $('intro-art').innerHTML = hookArtHTML(G.hook,{className:'incident-intro-art'});
   $('intro-text').innerHTML = G.hook.intro;
+  $('setup-progress-intro').innerHTML = setupProgressHTML(2,'Read the Incident aloud','Give the table the premise before the questions begin.');
   show('scr-intro');
 }
 
@@ -72,6 +76,7 @@ export function renderArchSetup(){
   const i = G.archIdx, a = G.archetypes[i];
   const answerer = G.players[i % G.players.length];
   $('scr-archsetup').innerHTML = `
+    ${setupProgressHTML(3,'Establish the Archetypes',`Question ${i+1} of six — ${esc(answerer.name)} answers next.`)}
     <p class="center muted sc" style="letter-spacing:.2em">ESTABLISHING THE DEAD</p>
     ${progressDotsHTML(i, 6, `Question ${ROMAN[i+1]} of VI`)}
     <div class="ornament">❦</div>
@@ -115,6 +120,7 @@ export function saveArchSetup(){
 export function renderVictim(){
   const G = State.G;
   $('scr-victim').innerHTML = `
+    ${setupProgressHTML(4,'Name the Victim','Gather the six answers, then give the dead a name.')}
     <h2 class="center">The Victim</h2>
     <p class="center muted" style="max-width:640px;margin:6px auto">${G.hook.victimLine}</p>
     <div class="ornament">❦</div>
