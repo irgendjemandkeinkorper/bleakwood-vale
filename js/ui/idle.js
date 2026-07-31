@@ -40,20 +40,47 @@ function currentMilestoneText(count){
 export function showIdleClicker(){
   renderIdlePanel();
   openOverlay();
+  const firstBtn = document.querySelector('#overlay-content .idle-obj') || document.querySelector('#overlay-content .primary');
+  if(firstBtn) firstBtn.focus();
 }
 
 function renderIdlePanel(){
   const count = getCount();
   const unlocked = UNLOCKS.filter(u=>count>=u.at);
+
+  const activeEl = document.activeElement;
+  let activeId = null;
+  let activeIsReturn = false;
+  if (activeEl) {
+    if (activeEl.classList.contains('primary') && activeEl.closest('#overlay-content')) {
+      activeIsReturn = true;
+    } else {
+      for (const u of UNLOCKS) {
+        if (activeEl.classList.contains(`idle-${u.id}`)) {
+          activeId = u.id;
+          break;
+        }
+      }
+    }
+  }
+
   $('overlay-content').innerHTML = `
     <h2 style="color:var(--gold)">Keep Watch</h2>
     <p class="small muted">Something to do with your hands while the others work up a plotline.</p>
     <div class="idle-scene" id="idle-scene">
       ${unlocked.map(u=>`<button class="idle-obj idle-${u.id}" onclick="idleClick('${u.id}')" aria-label="${u.label}" title="${u.label}">${u.glyph}</button>`).join('')}
     </div>
-    <p class="center" style="margin-top:10px"><span class="idle-count" id="idle-count">${count}</span> <span class="small muted">counted</span></p>
-    <p class="small" id="idle-milestone" style="min-height:1.4em;color:#cfc2a2;text-align:center">${currentMilestoneText(count)}</p>
+    <p class="center" style="margin-top:10px" role="status" aria-live="polite" aria-atomic="true"><span class="idle-count" id="idle-count">${count}</span> <span class="small muted">counted</span></p>
+    <p class="small" id="idle-milestone" role="status" aria-live="polite" aria-atomic="true" style="min-height:1.4em;color:#cfc2a2;text-align:center">${currentMilestoneText(count)}</p>
     <div class="btnrow" style="justify-content:center"><button class="primary" onclick="closeOverlay()">Back to the Vale</button></div>`;
+
+  if (activeIsReturn) {
+    const returnBtn = document.querySelector('#overlay-content .primary');
+    if (returnBtn) returnBtn.focus();
+  } else if (activeId) {
+    const btn = document.querySelector(`#overlay-content .idle-${activeId}`);
+    if (btn) btn.focus();
+  }
 }
 
 export function idleClick(id){
@@ -62,22 +89,32 @@ export function idleClick(id){
   setCount(after);
 
   const btn = document.querySelector(`.idle-${id}`);
-  if(btn && btn.animate){
-    btn.animate([
-      {transform:'scale(1) rotate(0deg)'},
-      {transform:'scale(1.18) rotate(-5deg)'},
-      {transform:'scale(.96) rotate(3deg)'},
-      {transform:'scale(1) rotate(0deg)'}
-    ], {duration:380, easing:'ease-out'});
-  }
-
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const justUnlocked = UNLOCKS.some(u=>u.at===after);
-  if(justUnlocked){
-    // Let the click's own reaction animation finish before the panel
-    // re-renders to reveal the newly unlocked object — re-rendering
-    // immediately would cancel the in-flight animation on `btn`.
-    setTimeout(renderIdlePanel, 380);
+
+  if (justUnlocked) {
+    if (prefersReduced) {
+      renderIdlePanel();
+    } else {
+      if (btn && btn.animate) {
+        btn.animate([
+          {transform:'scale(1) rotate(0deg)'},
+          {transform:'scale(1.18) rotate(-5deg)'},
+          {transform:'scale(.96) rotate(3deg)'},
+          {transform:'scale(1) rotate(0deg)'}
+        ], {duration:380, easing:'ease-out'});
+      }
+      setTimeout(renderIdlePanel, 380);
+    }
   } else {
+    if (!prefersReduced && btn && btn.animate) {
+      btn.animate([
+        {transform:'scale(1) rotate(0deg)'},
+        {transform:'scale(1.18) rotate(-5deg)'},
+        {transform:'scale(.96) rotate(3deg)'},
+        {transform:'scale(1) rotate(0deg)'}
+      ], {duration:380, easing:'ease-out'});
+    }
     const countEl = $('idle-count'); if(countEl) countEl.textContent = after;
     const msgEl = $('idle-milestone'); if(msgEl) msgEl.textContent = currentMilestoneText(after);
   }
