@@ -101,6 +101,13 @@ card display show generated art when it exists at
 to a plain text card when it doesn't — art is optional at every layer, never
 a hard dependency.
 
+Archetype Gallery cards have paired **Candlelit** and **Guttered** faces;
+Victim Gallery cards have paired **Mourning** and **Die Nacht** faces. Their
+authoritative roster, filenames, side context, and quotations live in
+`js/data/cardFaces.js`. The supplied filename index is preserved at
+`art/images/tarot/bleakwood-vale-card-labels.md`. Replaced archetype and
+victim artwork is retained under `art/images/backup-pre-paired-cards-2026-08-03/`.
+
 Art is generated with Gemini (`gemini-3.1-flash-image`), using the same
 `google-genai` pattern as the sibling `dramgid-lore-gallery` project:
 

@@ -24,7 +24,7 @@ export const ARCHETYPES = [
     ]
   },
   {
-    role:'The Opium-Addled Poet',
+    role:'The Laudanum Lyre',
     flavor:'Once the toast of the London reviews; now the Vale’s resident ruin, seeing too much.',
     setup:{
       seance:'The dead spoke through the medium in a voice you recognised. Whose voice was it — and what did it call you?',
@@ -266,7 +266,7 @@ export const ARCHETYPES = [
     ]
   },
   {
-    role:'The Travelling Illusionist',
+    role:'The Cabinet Magician',
     flavor:'Performs impossible things nightly under canvas and gaslight; has started to suspect that one or two of his tricks have stopped being tricks.',
     setup:{
       seance:'You taught the medium two of her best effects, years ago, for a price she never fully paid. Which trick did she use on the dead that night that you never actually taught her?',

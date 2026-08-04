@@ -6,3 +6,4 @@ export * from './omens.js';
 export * from './secrets.js';
 export * from './actCloses.js';
 export * from './epilogue.js';
+export * from './cardFaces.js';

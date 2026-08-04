@@ -1,5 +1,6 @@
 import { esc, slugify } from '../engine/utils.js';
 import { State } from '../engine/state.js';
+import { archetypeCardForRole, pairedCardStem } from '../data/cardFaces.js';
 
 export const ART_STYLES = [
   {id:'painterly', label:'Painterly Gothic', note:'Cinematic oils, fog, candlelight, and Victorian chiaroscuro.'},
@@ -21,6 +22,9 @@ export function artPath(style, category, key){
 }
 
 function artImageHTML(path, alt){
+  if(/\.(?:jpe?g|png|webp)$/i.test(path)){
+    return `<img loading="lazy" src="${path}" data-base="${path}" data-exts="" onerror="gameArtImgError(this)" alt="${esc(alt)}">`;
+  }
   return `<img loading="lazy" src="${path}.${ART_EXTS[0]}" data-base="${path}" data-exts="${ART_EXTS.slice(1).join(',')}" onerror="gameArtImgError(this)" alt="${esc(alt)}">`;
 }
 
@@ -46,8 +50,14 @@ export function gameArtHTML(category, key, alt, opts={}){
 }
 
 export function archetypeArtHTML(a, sideIdx, opts={}){
+  const style = normalizeArtStyle(opts.style ?? currentArtStyle());
+  const item = archetypeCardForRole(a.role);
+  if(item){
+    const face = item.faces[sideIdx] || item.faces[0];
+    return gameArtHTML('archetypes',`${pairedCardStem(style,item,sideIdx)}.png`,`${item.title}, ${face.label}`,{...opts,style});
+  }
   const side = sideIdx===0 ? 'front' : 'turned';
-  return gameArtHTML('archetypes',`${slugify(a.role)}--${side}`,`${a.role}, Side ${sideIdx===0?'I':'II'}`,opts);
+  return gameArtHTML('archetypes',`${slugify(a.role)}--${side}`,`${a.role}, Side ${sideIdx===0?'I':'II'}`,{...opts,style});
 }
 
 export function omenArtHTML(o, opts={}){

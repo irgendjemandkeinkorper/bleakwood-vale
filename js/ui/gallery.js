@@ -1,5 +1,5 @@
 import { $, esc, slugify } from '../engine/utils.js';
-import { ARCHETYPES, HOOKS, OMENS } from '../data/index.js';
+import { CARD_ARCHETYPES, CARD_VICTIMS, HOOKS, OMENS, pairedCardStem } from '../data/index.js';
 import { openOverlay } from './screens.js';
 import { State } from '../engine/state.js';
 import { ART_STYLES, currentArtStyle } from './art.js';
@@ -13,12 +13,7 @@ import { ART_STYLES, currentArtStyle } from './art.js';
 let gState = { style:'painterly', cat:'archetypes', detail:null };
 
 function archetypeTiles(style){
-  return ARCHETYPES.map(a=>{
-    const slug = slugify(a.role);
-    return {cat:'archetypes', key:slug, title:a.role, sub:'Side I', backSub:'Side II — turned',
-      flavor:a.flavor, quote:a.sides[0].cond, backQuote:a.sides[1].cond,
-      path:`art/images/${style}/archetypes/${slug}--front`, backPath:`art/images/${style}/archetypes/${slug}--turned`, flippable:true};
-  });
+  return pairedTiles(style,'archetypes',CARD_ARCHETYPES);
 }
 function hookTiles(style){
   return HOOKS.map(h=>({cat:'hooks', key:h.id, title:h.title, sub:'The Incident', flavor:h.epigraph, path:`art/images/${style}/hooks/${h.id}`}));
@@ -27,7 +22,16 @@ function omenTiles(style){
   return OMENS.map(o=>({cat:'omens', key:slugify(o.title), title:o.title, sub:o.glyph, flavor:o.line, path:`art/images/${style}/omens/${slugify(o.title)}`}));
 }
 function victimTiles(style){
-  return HOOKS.map(h=>({cat:'victims', key:h.id, title:h.title, sub:'The Victim', flavor:h.victimLine, path:`art/images/${style}/victims/${h.id}`}));
+  return pairedTiles(style,'victims',CARD_VICTIMS);
+}
+function pairedTiles(style, category, cards){
+  return cards.map(item=>{
+    const [front,back] = item.faces;
+    return {cat:category, key:item.slug, title:item.title, sub:front.label, backSub:back.label,
+      flavor:front.context, backFlavor:back.context, quote:front.quote, backQuote:back.quote,
+      path:`art/images/${style}/${category}/${pairedCardStem(style,item,0)}.png`,
+      backPath:`art/images/${style}/${category}/${pairedCardStem(style,item,1)}.png`, flippable:true};
+  });
 }
 const CATS = [
   {id:'archetypes', label:'Archetypes', build:archetypeTiles},
@@ -41,6 +45,9 @@ const CATS = [
    stops someone from exporting .png/.webp instead. */
 const EXTS = ['jpg','jpeg','png','webp'];
 function imgWithFallback(path, alt){
+  if(/\.(?:jpe?g|png|webp)$/i.test(path)){
+    return `<img loading="lazy" src="${path}" data-base="${path}" data-exts="" onerror="galleryImgError(this)" alt="${esc(alt)}">`;
+  }
   const rest = EXTS.slice(1).join(',');
   return `<img loading="lazy" src="${path}.${EXTS[0]}" data-base="${path}" data-exts="${rest}" onerror="galleryImgError(this)" alt="${esc(alt)}">`;
 }
@@ -67,7 +74,7 @@ function galleryMediaHTML(t, detail=false){
       <div class="gallery-face gallery-front">${imgWithFallback(t.path,`${t.title}, ${t.sub}`)}${fallbackHTML(t,t.sub)}<span class="gallery-face-label">${esc(t.sub)}</span></div>
       <div class="gallery-face gallery-back">${imgWithFallback(t.backPath,`${t.title}, ${t.backSub}`)}${fallbackHTML(t,t.backSub)}<span class="gallery-face-label">${esc(t.backSub)}</span></div>
     </div>
-    <button class="gallery-flip-control" type="button" onclick="event.stopPropagation();flipGalleryCard(this)" onkeydown="event.stopPropagation()" aria-label="View Side II" aria-pressed="false">⟳ <span>Side II</span></button>
+    <button class="gallery-flip-control" type="button" onclick="event.stopPropagation();flipGalleryCard(this)" onkeydown="event.stopPropagation()" data-front-label="${esc(t.sub)}" data-back-label="${esc(t.backSub)}" aria-label="View ${esc(t.backSub)}" aria-pressed="false">⟳ <span>${esc(t.backSub)}</span></button>
   </div>`;
 }
 function tileHTML(t){
@@ -86,14 +93,18 @@ export function flipGalleryCard(btn){
   const card = btn.closest('.gallery-flip');
   if(!card) return;
   const flipped = card.classList.toggle('is-flipped');
-  btn.setAttribute('aria-label',flipped?'View Side I':'View Side II');
+  const frontLabel = btn.dataset.frontLabel || 'Side I';
+  const backLabel = btn.dataset.backLabel || 'Side II';
+  btn.setAttribute('aria-label',`View ${flipped?frontLabel:backLabel}`);
   btn.setAttribute('aria-pressed',String(flipped));
-  btn.innerHTML = `${flipped?'↶':'⟳'} <span>${flipped?'Side I':'Side II'}</span>`;
+  btn.innerHTML = `${flipped?'↶':'⟳'} <span>${flipped?frontLabel:backLabel}</span>`;
   const container = card.closest('.gtile, .gdetail');
   const label = container?.querySelector('[data-gallery-side-label]');
-  if(label) label.textContent = flipped ? 'Side II — turned' : 'Side I';
+  if(label) label.textContent = flipped ? backLabel : frontLabel;
   const quote = container?.querySelector('[data-gallery-side-quote]');
   if(quote) quote.textContent = flipped ? quote.dataset.backQuote : quote.dataset.frontQuote;
+  const flavor = container?.querySelector('[data-gallery-side-flavor]');
+  if(flavor) flavor.textContent = flipped ? flavor.dataset.backFlavor : flavor.dataset.frontFlavor;
 }
 
 export function showGallery(){
@@ -138,7 +149,7 @@ function detailHTML(){
       <h3 style="color:var(--gold);margin-top:12px">${esc(t.title)}</h3>
       ${t.sub?`<p class="small muted"><span data-gallery-side-label>${esc(t.sub)}</span></p>`:''}
       ${t.flippable?gallerySideQuoteHTML(t):''}
-      ${t.flavor?`<p class="gallery-flavor">${esc(t.flavor)}</p>`:''}
+      ${t.flavor?`<p class="gallery-flavor" ${t.flippable?`data-gallery-side-flavor data-front-flavor="${esc(t.flavor)}" data-back-flavor="${esc(t.backFlavor)}"`:''}>${esc(t.flavor)}</p>`:''}
       ${t.flippable?'<p class="small muted" style="margin-top:8px">Use the turn button on the card to compare its two faces.</p>':''}
     </div>
     <div class="btnrow" style="justify-content:center;margin-top:16px"><button class="primary" onclick="closeGalleryDetail()">← Back to the Gallery</button></div>`;

@@ -128,28 +128,45 @@ def run() -> None:
             page.get_by_role("button", name="Back to the Table", exact=True).click()
             page.wait_for_selector("#scr-hub.active")
 
-            # Gallery: each archetype retains two distinct face quotes.
+            # Gallery: paired archetype and victim faces update their label,
+            # quotation, and art-led context together.
             page.locator(
                 '#topbar button[title="Browse the card art while others plot"]'
             ).click()
             page.wait_for_selector("#overlay[style*='block']")
             tile = page.locator(".gcat-archetypes .gtile").first
-            assert page.locator(".gcat-archetypes .gtile").count() == 16
+            assert page.locator(".gcat-archetypes .gtile").count() == 20
             quote = tile.locator("[data-gallery-side-quote]")
             front_quote = quote.inner_text()
+            assert tile.locator("[data-gallery-side-label]").inner_text() == "Candlelit"
             tile.locator(".gallery-flip-control").click()
             assert quote.inner_text() == quote.get_attribute("data-back-quote")
             assert quote.inner_text() != front_quote
-            assert tile.locator("[data-gallery-side-label]").inner_text() == "Side II — turned"
+            assert tile.locator("[data-gallery-side-label]").inner_text() == "Guttered"
 
             tile.focus()
             page.keyboard.press("Enter")
             page.wait_for_selector(".gdetail")
             detail_quote = page.locator(".gdetail [data-gallery-side-quote]")
+            detail_flavor = page.locator(".gdetail [data-gallery-side-flavor]")
             detail_front = detail_quote.inner_text()
+            flavor_front = detail_flavor.inner_text()
             page.locator(".gdetail .gallery-flip-control").click()
             assert detail_quote.inner_text() != detail_front
+            assert detail_flavor.inner_text() != flavor_front
+            assert page.locator(".gdetail [data-gallery-side-label]").inner_text() == "Guttered"
             page.locator("#overlay-content > button.ghost").click()
+
+            page.get_by_role("button", name="Victims", exact=True).click()
+            victim_tiles = page.locator(".gcat-victims .gtile")
+            assert victim_tiles.count() == 15
+            victim = victim_tiles.first
+            victim_quote = victim.locator("[data-gallery-side-quote]")
+            victim_front = victim_quote.inner_text()
+            assert victim.locator("[data-gallery-side-label]").inner_text() == "Mourning"
+            victim.locator(".gallery-flip-control").click()
+            assert victim_quote.inner_text() != victim_front
+            assert victim.locator("[data-gallery-side-label]").inner_text() == "Die Nacht"
 
             # Online entry should remain reachable without creating a room.
             page.evaluate("window.showOnlineEntry()")
