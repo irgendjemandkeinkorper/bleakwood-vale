@@ -128,7 +128,9 @@ export async function liveBeginScene(code, cardIdx, archIdx, opening){
     const card = priv.hand.splice(cardIdx,1)[0];
     p.handCount = priv.hand.length;
 
-    room.current = {type:'scene', starter:pi, archIdx, card, contributions:[], happened:'', opening:(opening||'').trim(), phase:'play'};
+    const archIdxs = Array.isArray(archIdx) ? archIdx.slice(0,2).map(Number).filter(Number.isInteger) : [Number(archIdx)];
+    if(!archIdxs.length) throw new Error('Choose at least one lead archetype.');
+    room.current = {type:'scene', starter:pi, archIdx:archIdxs[0], archIdxs, card, contributions:[], happened:'', opening:(opening||'').trim(), phase:'play'};
 
     t.set(roomRef(code), room);
     t.set(pref, priv);
@@ -162,7 +164,7 @@ export async function liveContribute(code, kind, idx, how){
     if(c.contributions.length >= 2) throw new Error('This scene already holds three cards.');
     const pi = mySeat(room);
     if(pi === c.starter) throw new Error('You already opened this scene.');
-    if(c.contributions.some(x=>x.pi===pi)) throw new Error('You already played into this scene.');
+    if(c.contributions.filter(x=>x.pi===pi).length>=2) throw new Error('You have already played two cards into this scene.');
 
     let card, pref, priv;
     if(kind==='scene'){
@@ -187,13 +189,16 @@ export async function liveContribute(code, kind, idx, how){
 function countTonesAndResolve(room, flips){
   const c = room.current;
   flips.forEach(i=>{ const a = room.archetypes[i]; a.flipped = !a.flipped; });
-  const lead = room.archetypes[c.archIdx];
+  const leadIndices = c.archIdxs?.length ? c.archIdxs : [c.archIdx];
+  const lead = room.archetypes[leadIndices[0]];
   const tones = [];
   if(c.card.tone) tones.push(c.card.tone);
   c.contributions.forEach(x=>{ if(x.kind==='scene') tones.push(x.card.tone); });
-  tones.push(lead.sides[lead.flipped?1:0].tone);
+  leadIndices.forEach(i=>{ const a=room.archetypes[i]; tones.push(a.sides[a.flipped?1:0].tone); });
   room.discardTones.push(...tones);
-  c.contributions.forEach(x=>{ if(x.kind==='omen') room.players[x.pi].omens.push(x.card); });
+  const usedOmens=c.contributions.filter(x=>x.kind==='omen').map(x=>x.card);
+  room.omenDeck=shuffle(room.omenDeck.concat(usedOmens));
+  while(room.omenRow.length<6 && room.omenDeck.length) room.omenRow.push(room.omenDeck.shift());
 
   const flipNames = flips.map(i=>{
     const a = room.archetypes[i];
@@ -203,7 +208,7 @@ function countTonesAndResolve(room, flips){
   room.journal.push({
     type:c.type, act:room.act,
     playerName:room.players[c.starter].name,
-    archName:lead.name||lead.role, archRole:lead.role,
+    archName:leadIndices.map(i=>room.archetypes[i].name||room.archetypes[i].role).join(' + '), archRole:leadIndices.map(i=>room.archetypes[i].role).join(' + '),
     cardTitle:c.card.title, cardPrompt:c.card.prompt, element:c.element||null,
     opening:c.opening, happened:c.happened,
     contributions:c.contributions.map(x=>({playerName:room.players[x.pi].name, kind:x.kind,
@@ -365,6 +370,36 @@ export async function liveToggleStrike(code, journalIndex){
     if(!room.journal[journalIndex]) throw new Error('No such entry.');
     room.journal[journalIndex].struck = !room.journal[journalIndex].struck;
     t.set(roomRef(code), room);
+  });
+}
+
+export async function liveSetReady(code, role){
+  const allowed=['lead','follow','watch'];
+  if(role!==null && !allowed.includes(role)) throw new Error('Unknown readiness role.');
+  await runTransaction(db, async t=>{
+    const room=await readRoom(t,code), pi=mySeat(room);
+    if(pi<0) throw new Error('Not seated at this table.');
+    room.players[pi].readyRole=role;
+    t.set(roomRef(code),room);
+  });
+}
+export async function liveVoteOmen(code, omenIndex){
+  await runTransaction(db, async t=>{
+    const room=await readRoom(t,code), uid=getUid(), pi=mySeat(room);
+    if(pi<0 || !room.omenRow[omenIndex]) throw new Error('That omen is no longer available.');
+    room.omenVotes=room.omenVotes||{}; room.omenVotes[uid]=Number(omenIndex);
+    const votes=Object.values(room.omenVotes), unanimous=votes.length===room.players.length && votes.every(v=>v===Number(omenIndex));
+    if(unanimous){ const old=room.omenRow[omenIndex]; room.omenDeck=shuffle(room.omenDeck.concat([old])); room.omenRow[omenIndex]=room.omenDeck.shift()||old; room.omenVotes={}; }
+    t.set(roomRef(code),room);
+  });
+}
+
+export async function liveSwapArchetype(code, index, replacement){
+  await runTransaction(db, async t=>{
+    const room=await readRoom(t,code);
+    if(room.phase!=='archsetup' || index!==room.archIdx) throw new Error('That archetype is no longer being established.');
+    const used=new Set(room.archetypes.map(a=>a.id)); if(used.has(replacement.id)) throw new Error('That archetype is already in the setup.');
+    room.archetypes[index]={...replacement,name:'',setupA:'',answeredBy:'',flipped:false}; t.set(roomRef(code),room);
   });
 }
 

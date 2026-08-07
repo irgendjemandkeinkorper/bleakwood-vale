@@ -6,6 +6,7 @@ import { faceUp } from '../engine/rules.js';
 import { liveToggleStrike } from '../sync/liveActions.js';
 import { sceneAnatomyDiagramHTML } from './cards.js';
 import { markIntroSeen } from '../engine/firstrun.js';
+import { bleakifyText } from './bleakify.js';
 
 /* ---------------- the chronicle ---------------- */
 export function viewChronicle(interim){
@@ -70,6 +71,12 @@ export function renderChronicle(interim){
       ${G.archetypes.map(a=>`<p class="small" style="margin:4px 0"><span class="sc" style="color:#eddfba">${esc(a.name||a.role)}</span> — ${esc(a.role)}${a.flipped?' <span style="color:var(--blood-bright)">(turned)</span>':''} ${toneBadge(faceUp(a).tone)}</p>`).join('')}
     </div>
     ${acts || '<p class="center muted" style="margin-top:20px">Nothing is yet written. The candles are still tall.</p>'}
+    <div class="panel spotlight">
+      <h3 style="color:var(--gold)">Export polish</h3>
+      <p class="small muted">Optionally ask Gemini to summarize the events for the exported record. Your original entries remain unchanged.</p>
+      <textarea id="record-summary" style="min-height:100px">${esc(G.recordSummary||'')}</textarea>
+      <div class="btnrow"><button class="ghost" onclick="bleakifyRecord()">Bleakify the Record <span class="small">(optional)</span></button></div>
+    </div>
     ${over?`
       <div class="ornament">❦ ✦ ❦</div>
       <div class="panel">
@@ -84,6 +91,16 @@ export function renderChronicle(interim){
     </div>
     <p class="small muted center" style="margin-top:8px">Anything stricken from the record never was. No questions asked; no reasons owed.</p>`;
 }
+export async function bleakifyRecord(){
+  const input=$('record-summary'); if(!input) return;
+  const source=GRecordText(); if(!source) return;
+  const btn=document.querySelector('#record-summary + .btnrow button'); const old=btn?.textContent;
+  if(btn){btn.disabled=true;btn.textContent='Bleakifying…';}
+  try{ State.G.recordSummary=await bleakifyText(source,'chronicle summary'); renderChronicle(true); }
+  catch(err){ alert(err.message); }
+  finally{ if(btn){btn.disabled=false;btn.textContent=old;} }
+}
+function GRecordText(){ return (State.G?.journal||[]).filter(e=>!e.struck).map(e=>e.happened||e.answer||e.text||e.cardTitle||'').filter(Boolean).join('\n'); }
 export function toggleStrike(gi, interim){
   if(State.onlineRoomCode){
     liveToggleStrike(State.onlineRoomCode, gi).catch(err=>alert(err.message));
@@ -122,9 +139,15 @@ export function showRules(){
       <div class="rules-example">For example: if Dread came up most often this act, the Close might command "include a lantern that goes out and will not relight" — whoever the condition names begins the scene, and must weave that in somewhere.</div>
       <p><strong style="color:var(--blood-bright)">The Strike.</strong> Anyone may strike anything from the story at any moment — no questions asked, no reasons owed. Use the ☒ in the Record, or simply say so aloud. The stricken thing never was. Care for the people at your table above all else.</p>
     </div>
-    <div class="btnrow"><button class="primary" onclick="closeOverlay()">Return</button></div>`;
+    <div class="btnrow"><button class="primary" onclick="returnToGame()">Return to the Game</button></div>`;
   openOverlay();
   $('overlay-content').querySelector('button')?.focus();
+}
+export function returnToGame(){
+  closeOverlay();
+  const active=document.querySelector('.screen.active');
+  active?.scrollTo?.({top:0,behavior:'auto'});
+  window.scrollTo({top:0,behavior:'auto'});
 }
 
 export function initOverlayDismiss(){

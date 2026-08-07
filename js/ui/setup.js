@@ -90,6 +90,7 @@ export function renderArchSetup(){
         <hr class="rule" style="border-color:rgba(60,45,25,.3)">
         <div style="font-size:1.05rem">“${a.setup[G.hook.id]}”</div>
         <div class="small" style="margin-top:8px;color:var(--blood)">${toneBadge(a.sides[0].tone)} <span style="color:var(--ink-soft)">— ${esc(a.sides[0].cond)} flip this card.</span></div>
+        <div class="btnrow"><button class="ghost" onclick="swapArchSetup()">Swap this archetype</button></div>
         </div>
       </div>
       <div class="panel">
@@ -103,6 +104,11 @@ export function renderArchSetup(){
         </div>
       </div>
     </div>`;
+}
+export function swapArchSetup(){
+  const G=State.G, used=new Set(G.archetypes.map(a=>a.id));
+  const replacement=shuffle(ARCHETYPES).find(a=>!used.has(a.id)); if(!replacement) return;
+  G.archetypes[G.archIdx]={...replacement,name:'',setupA:'',answeredBy:'',flipped:false}; renderArchSetup();
 }
 export function saveArchSetup(){
   const G = State.G;

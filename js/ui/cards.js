@@ -1,6 +1,8 @@
 import { esc, nl2br, toneBadge, ACT_NAMES } from '../engine/utils.js';
 import { State } from '../engine/state.js';
+import { faceUp } from '../engine/rules.js';
 import { archetypeArtHTML, omenArtHTML } from './art.js';
+import { openOverlay } from './screens.js';
 
 function archFaceHTML(a, sideIdx, turned){
   const s = a.sides[sideIdx];
@@ -24,7 +26,8 @@ function archFaceHTML(a, sideIdx, turned){
 export function archCard(a, selectable, idx){
   const frontIdx = a.flipped?1:0, backIdx = a.flipped?0:1;
   const pickAttrs = selectable ? `role="button" tabindex="0" aria-label="Choose ${esc(a.name||a.role)} as the lead archetype" aria-pressed="false" onclick="${selectable}(${idx})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${selectable}(${idx})}" id="arch-pick-${idx}"` : '';
-  return `<div class="arch-flip${selectable?' selectable':''}" ${pickAttrs}>
+  const detailAttrs = selectable ? '' : `onclick="openCardDetail('archetype',${JSON.stringify(a).replace(/"/g,'&quot;')})" role="button" tabindex="0" aria-label="Read ${esc(a.name||a.role)}"`;
+  return `<div class="arch-flip${selectable?' selectable':''}" ${pickAttrs} ${detailAttrs}>
     <button class="flip-btn" type="button" onclick="event.stopPropagation();flipArchCard(this)" onkeydown="event.stopPropagation()" aria-label="Peek at the other side" title="Peek at the other side">⟳</button>
     <div class="arch-flip-inner">
       <div class="arch-face arch-front">${archFaceHTML(a, frontIdx, a.flipped)}</div>
@@ -82,13 +85,26 @@ export function sceneAnatomyDiagramHTML(){
 }
 export function omenCard(o, selectable, idx){
   const pickAttrs = selectable ? `role="button" tabindex="0" aria-label="Choose omen ${esc(o.title)}" aria-pressed="false" onclick="${selectable}(${idx})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${selectable}(${idx})}" id="omen-pick-${idx}"` : '';
-  return `<div class="card omen${selectable?' selectable':''}" ${pickAttrs}>
+  const detailAttrs = selectable ? '' : `onclick="openCardDetail('omen',${JSON.stringify(o).replace(/"/g,'&quot;')})" role="button" tabindex="0" aria-label="Read ${esc(o.title)}"`;
+  return `<div class="card omen${selectable?' selectable':''}" ${pickAttrs} ${detailAttrs}>
     <div class="c-kicker">Omen</div>
     ${omenArtHTML(o,{className:'omen-card-art'})}
     <div class="glyph">${o.glyph}</div>
     <div class="c-title">${esc(o.title)}</div>
     <div class="c-prompt">${esc(o.line)}</div>
   </div>`;
+}
+
+export function openCardDetail(kind, card){
+  if(!card) return;
+  const isArch = kind==='archetype';
+  $('overlay-content').innerHTML = `<button class="ghost" onclick="closeOverlay()">← Return to the game</button>
+    <div class="gdetail card-detail-modal">
+      <h2 style="color:var(--gold)">${esc(card.name||card.role||card.title)}</h2>
+      ${isArch ? `<div class="pgrid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">${archFaceHTML(card,0,!!card.flipped)}${archFaceHTML(card,1,!card.flipped)}</div>
+        <p class="gallery-flavor">${esc(card.flavor||'')}</p>` : `<div class="card omen" style="max-width:360px;margin:0 auto"><div class="c-kicker">Omen</div>${omenArtHTML(card,{className:'omen-card-art'})}<div class="glyph">${card.glyph||''}</div><div class="c-title">${esc(card.title)}</div><div class="c-prompt">${esc(card.line||card.prompt||'')}</div></div>`}
+    </div>`;
+  openOverlay();
 }
 export function sceneCardHTML(c, selectable, idx){
   const G = State.G;
@@ -109,7 +125,8 @@ export function sceneTrackerHTML(G, opts={}){
   if(!c?.card) return '';
 
   const starter = G.players[c.starter];
-  const lead = G.archetypes[c.archIdx];
+  const leadIndices = c.archIdxs?.length ? c.archIdxs : [c.archIdx];
+  const lead = G.archetypes[leadIndices[0]];
   const leadFace = lead.sides[lead.flipped?1:0];
   const resolving = opts.phase === 'resolve';
   const happened = opts.happened ?? c.happened;
@@ -155,7 +172,7 @@ export function sceneTrackerHTML(G, opts={}){
   c.contributions.forEach(x=>{
     if(x.kind==='scene') toneSources.push({tone:x.card.tone, source:x.card.title});
   });
-  toneSources.push({tone:leadFace.tone, source:`${lead.name||lead.role} · face-up`});
+  leadIndices.forEach(i=>{ const a=G.archetypes[i]; toneSources.push({tone:faceUp(a).tone, source:`${a.name||a.role} · face-up`}); });
   const hasOmen = c.contributions.some(x=>x.kind==='omen');
 
   const contributed = new Map();

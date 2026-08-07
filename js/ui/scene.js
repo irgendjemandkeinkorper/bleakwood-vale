@@ -4,10 +4,11 @@ import { show } from './screens.js';
 import { archCard, omenCard, sceneCardHTML, sceneAnatomyDiagramHTML, sceneTrackerHTML } from './cards.js';
 import { eligibleContributors, maxContrib } from '../engine/rules.js';
 import { hasSeenIntro, markIntroSeen } from '../engine/firstrun.js';
+import { bleakifyButton } from './bleakify.js';
 
 /* ---------------- scenes ---------------- */
 export function startSceneFor(pi){
-  State.G.current = {type:'scene', starter:pi, phase:'pick', cardIdx:null, archIdx:null,
+  State.G.current = {type:'scene', starter:pi, phase:'pick', cardIdx:null, archIdx:null, archIdxs:[],
                contributions:[], happened:'', opening:'', adding:null};
   renderScenePick();
   show('scr-scene');
@@ -35,6 +36,7 @@ export function renderScenePick(){
       <label class="fld">What the camera sees as the scene opens</label>
       <p class="small muted" style="margin-bottom:6px">Every scene begins as if filmed. The fog, the light, the hour, who stands where. Then narrate freely, aloud.</p>
       <textarea id="scene-opening" placeholder="The camera drifts through…"></textarea>
+      <div class="btnrow">${bleakifyButton('scene-opening','scene')}</div>
       <div class="btnrow">
         <button class="primary" id="btn-begin" disabled onclick="beginScene()">Begin the Scene</button>
         <button class="ghost" onclick="renderHub();show('scr-hub')">Back to the Table</button>
@@ -50,14 +52,16 @@ export function pickSceneCard(i){
   checkBegin();
 }
 export function pickArch(i){
-  State.G.current.archIdx = i;
+  const c=State.G.current; c.archIdxs=c.archIdxs||[];
+  const at=c.archIdxs.indexOf(i);
+  if(at>=0) c.archIdxs.splice(at,1); else if(c.archIdxs.length<2) c.archIdxs.push(i);
+  c.archIdx=c.archIdxs[0] ?? null;
   document.querySelectorAll('[id^="arch-pick-"]').forEach(el=>{ el.classList.remove('selected'); el.setAttribute('aria-pressed','false'); });
-  $('arch-pick-'+i).classList.add('selected');
-  $('arch-pick-'+i).setAttribute('aria-pressed','true');
+  c.archIdxs.forEach(n=>{ $('arch-pick-'+n).classList.add('selected'); $('arch-pick-'+n).setAttribute('aria-pressed','true'); });
   checkBegin();
 }
 export function checkBegin(){
-  $('btn-begin').disabled = !(State.G.current.cardIdx!==null && State.G.current.archIdx!==null);
+  $('btn-begin').disabled = !(State.G.current.cardIdx!==null && (State.G.current.archIdxs||[]).length>0);
 }
 export function beginScene(){
   const G = State.G;
@@ -93,6 +97,7 @@ export function renderScenePlay(animateSlot=null){
           <div style="max-width:280px">${pk.kind==='scene'?sceneCardHTML(card):omenCard(card)}</div>
           <label class="fld">How does it manifest in the scene?</label>
           <textarea id="contrib-how" oninput="setContribHow(this.value)" placeholder="Describe how it alters the scene in progress…">${esc(c.adding.how||'')}</textarea>
+          <div class="btnrow">${bleakifyButton('contrib-how','omen')}</div>
           <div class="btnrow">
             <button class="primary" onclick="confirmContrib()">Play It</button>
             <button class="ghost" onclick="cancelContrib()">Never mind</button>
@@ -116,6 +121,7 @@ export function renderScenePlay(animateSlot=null){
       <label class="fld">The record of what happens</label>
       <p class="small muted" style="margin-bottom:6px">Play the scene aloud — narrate, act, cast one another in roles. Note here what the Chronicle should remember: who appeared, what was said, what was discovered.</p>
       <textarea id="scene-happened" style="min-height:130px" oninput="setSceneHappened(this.value)" placeholder="What the Chronicle will remember of this scene…">${esc(c.happened||'')}</textarea>
+      <div class="btnrow">${bleakifyButton('scene-happened','record')}</div>
       <div class="btnrow">
         <button class="blood" onclick="endScene()">The scene ends — ${esc(p.name)} says so</button>
       </div>

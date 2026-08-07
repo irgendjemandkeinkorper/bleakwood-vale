@@ -33,11 +33,10 @@ export function maxContrib(){ return 2; } // starter's card + 2 others = 3 total
 export function eligibleContributors(){
   const G = State.G;
   const c = G.current, np = G.players.length;
-  const done = new Set(c.contributions.map(x=>x.pi));
   if(np===1) return c.contributions.length<maxContrib() ? [0] : [];
   const out=[];
   for(let i=0;i<np;i++){
-    if(i===c.starter || done.has(i)) continue;
+    if(i===c.starter || c.contributions.filter(x=>x.pi===i).length>=2) continue;
     if(G.players[i].hand.length>0 || G.omenRow.length>0) out.push(i);
   }
   return out;

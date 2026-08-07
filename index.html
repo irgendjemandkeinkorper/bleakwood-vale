@@ -11,9 +11,12 @@
 <div id="topbar">
   <span class="tb-title">Bleakwood Vale</span>
   <span class="tb-act" id="tb-act"></span>
+  <span class="tb-room" id="tb-room" aria-label="Room code"></span>
   <span class="tb-tones" id="tb-tones"></span>
   <button class="ghost" onclick="showRules()">The Rules</button>
   <button class="ghost" onclick="viewChronicle(true)">The Record</button>
+  <button class="ghost" onclick="exportGameState()" title="Save a JSON copy of this tale">Save</button>
+  <button class="ghost" onclick="importGameState()" title="Restore a JSON copy of a tale">Load</button>
   <button class="ghost" onclick="showGallery()" title="Browse the card art while others plot">The Gallery</button>
   <button class="ghost" onclick="showIdleClicker()" title="Something to do while others plot">Keep Watch</button>
 </div>
@@ -138,6 +141,7 @@
 </div>
 
 <div id="overlay" role="dialog" aria-modal="true"><div class="ov-inner" id="overlay-content"></div></div>
+<input id="save-import-input" type="file" accept="application/json" hidden>
 
 <script type="module" src="js/main.js"></script>
 </body>

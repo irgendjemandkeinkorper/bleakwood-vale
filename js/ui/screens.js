@@ -87,6 +87,8 @@ export function renderTopbar(){
   if(!G){ tb.style.display='none'; return; }
   tb.style.display='flex';
   $('tb-act').textContent = G.act<=3 ? `${ACT_NAMES[G.act]} — ${G.hook.title}` : 'The Chronicle';
+  const roomEl = $('tb-room');
+  if(roomEl){ roomEl.textContent = State.onlineRoomCode ? `Room ${State.onlineRoomCode}` : ''; roomEl.title = State.onlineRoomCode ? 'Share this room code' : ''; }
   const counts = actToneCounts();
   $('tb-tones').innerHTML = TONES.map(t=>`<span class="tone count ${t}" title="${t} this act">${counts[t]}</span>`).join('');
   if(!State.onlineRoomCode) mirrorState(); // Stage 2 shadow write, hotseat mode only — real sync (js/sync/liveActions.js) handles online rooms

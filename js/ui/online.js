@@ -1,5 +1,5 @@
 import { $, esc, toneBadge, ACT_NAMES, ROMAN, progressDotsHTML, setupProgressHTML, actTrackHTML } from '../engine/utils.js';
-import { HOOKS, TONES } from '../data/index.js';
+import { HOOKS, TONES, ARCHETYPES } from '../data/index.js';
 import { State } from '../engine/state.js';
 import { show } from './screens.js';
 import { archCard, omenCard, sceneCardHTML, journalEntrySummaryHTML, sceneAnatomyDiagramHTML, sceneTrackerHTML } from './cards.js';
@@ -7,12 +7,14 @@ import { faceUp, maxContrib, actToneCounts } from '../engine/rules.js';
 import { renderChronicle } from './renderChronicle.js';
 import { hasSeenIntro, markIntroSeen } from '../engine/firstrun.js';
 import { ART_STYLES, artStylePickerHTML, archetypeArtHTML, currentArtStyle, hookArtHTML, victimArtHTML } from './art.js';
-import { createRoom, joinRoom, subscribeRoom, unsubscribeRoom, subscribeMyPrivate, unsubscribeMyPrivate } from '../sync/liveRoom.js';
+import { createRoom, joinRoom, subscribeRoom, unsubscribeRoom, subscribeMyPrivate, unsubscribeMyPrivate, touchRoom } from '../sync/liveRoom.js';
 import { getUid, ensureSignedIn } from '../sync/auth.js';
+import { bleakifyButton } from './bleakify.js';
 import {
   liveBeginTale, liveSaveArchSetup, liveFinishVictim, liveBeginScene, liveBeginClose,
   liveContribute, liveEndSceneAndResolve, liveConfirmSecret, liveClaimSecret,
   liveAdvanceAfterClose, liveTradeOmen, liveForfeitScene
+  , liveSetReady, liveSwapArchetype, liveVoteOmen
 } from '../sync/liveActions.js';
 
 /* Small per-device scratch state for in-progress, uncommitted composition
@@ -59,9 +61,11 @@ let lastClaimAttempt = -1;
 /* Timer for the delayed advance-after-close cascade; cleared whenever the
    underlying condition stops being true so it never fires stale. */
 let advanceTimer = null;
+let roomHeartbeat = null;
 let renderedScene = {signature:null, contributions:0};
 
 function clearAdvanceTimer(){ if(advanceTimer){ clearTimeout(advanceTimer); advanceTimer = null; } }
+function clearRoomHeartbeat(){ if(roomHeartbeat){ clearInterval(roomHeartbeat); roomHeartbeat=null; } }
 
 function sceneAnimationSlot(room){
   const c = room.current;
@@ -172,6 +176,7 @@ export async function onlineCreateRoom(){
       return;
     }
     const code = await createRoom(hook, name, artChoice.value);
+    localStorage.setItem('bleakwood-player-name',name);
     enterRoom(code);
   } catch(err){ fail(err); }
 }
@@ -180,23 +185,28 @@ export async function onlineJoinRoom(){
     const code = ($('oe-join-code').value||'').trim().toUpperCase();
     const name = ($('oe-join-name').value||'').trim();
     await joinRoom(code, name);
+    localStorage.setItem('bleakwood-player-name',name);
     enterRoom(code);
   } catch(err){ fail(err); }
 }
 function enterRoom(code){
   State.onlineRoomCode = code;
+  localStorage.setItem('bleakwood-room-code',code);
   try { history.replaceState(null, '', '?room='+code); } catch(e){}
   resetDraft();
   myPrivate = {hand:[], secrets:[]};
   lastClaimAttempt = -1;
   subscribeMyPrivate(code, getUid(), priv => { myPrivate = priv; });
   subscribeRoom(code, routeAndRender);
+  clearRoomHeartbeat(); touchRoom(code).catch(()=>{});
+  roomHeartbeat=setInterval(()=>touchRoom(code).catch(()=>{}),30000);
 }
 
 export function leaveOnlineRoom(){
   unsubscribeRoom();
   unsubscribeMyPrivate();
   clearAdvanceTimer();
+  clearRoomHeartbeat();
   resetDraft();
   State.onlineRoomCode = null;
   State.G = null;
@@ -207,13 +217,13 @@ export function leaveOnlineRoom(){
 /* Auto-rejoin if the URL already carries ?room=CODE (e.g. a reopened tab). */
 export async function tryAutoRejoin(){
   const params = new URLSearchParams(location.search);
-  const code = params.get('room');
+  const code = params.get('room') || localStorage.getItem('bleakwood-room-code');
   if(!code) return false;
   try {
     await ensureSignedIn();
     // joinRoom() is a no-op write if we're already seated, which is exactly
     // the reconnect case; it throws if we're a stranger to a live game.
-    await joinRoom(code, '');
+    await joinRoom(code, localStorage.getItem('bleakwood-player-name')||'');
     enterRoom(code);
     return true;
   } catch(err){
@@ -321,6 +331,7 @@ function renderOnlineArchSetup(room){
         <hr class="rule" style="border-color:rgba(60,45,25,.3)">
         <div style="font-size:1.05rem">“${a.setup[room.hook.id]}”</div>
         <div class="small" style="margin-top:8px;color:var(--blood)">${toneBadge(a.sides[0].tone)} <span style="color:var(--ink-soft)">— ${esc(a.sides[0].cond)} flip this card.</span></div>
+        <div class="btnrow"><button class="ghost" onclick="onlineSwapArchSetup()">Swap this archetype</button></div>
         </div>
       </div>
       <div class="panel">
@@ -344,6 +355,11 @@ export async function onlineSaveArchSetup(){
     const name = $('arch-name').value, answer = $('arch-answer').value;
     await liveSaveArchSetup(State.onlineRoomCode, name, answer);
   } catch(err){ fail(err); }
+}
+export async function onlineSwapArchSetup(){
+  const used=new Set(State.G.archetypes.map(a=>a.id));
+  const replacement=ARCHETYPES.find(a=>!used.has(a.id)); if(!replacement) return;
+  try{ await liveSwapArchetype(State.onlineRoomCode,State.G.archIdx,replacement); }catch(err){fail(err);}
 }
 
 /* ---------------- victim ---------------- */
@@ -385,9 +401,15 @@ function onlineTurnSeatHTML(room,p,i,mySeat){
       ${state==='ready' && isMe?'<button class="primary" onclick="onlineStartScene()">Begin a scene</button>':''}
       ${state==='blocked' && p.scenesLeft>0?`<button class="blood" onclick="onlineForfeitScene(${i})">${isMe?'Forfeit my scene':`Forfeit for ${esc(p.name)}`}</button>`:''}
       ${isMe?`<button class="ghost" onclick="openOnlineHand()">View my cards (${myPrivate.hand.length+p.omens.length})</button>`:''}
+      ${isMe?`<div class="ready-controls"><button class="ghost" onclick="onlineSetReady('lead')">${p.readyRole==='lead'?'✓ ':''}Ready to lead</button><button class="ghost" onclick="onlineSetReady('follow')">${p.readyRole==='follow'?'✓ ':''}Ready to follow</button><button class="ghost" onclick="onlineSetReady('watch')">${p.readyRole==='watch'?'✓ ':''}Ready to watch</button></div>`:''}
     </div>
   </div>`;
 }
+export async function onlineSetReady(role){
+  const me=State.G?.players[mySeatIndex(State.G)];
+  try{ await liveSetReady(State.onlineRoomCode,me?.readyRole===role?null:role); }catch(err){fail(err);}
+}
+export async function onlineVoteOmen(index){ try{ await liveVoteOmen(State.onlineRoomCode,index); }catch(err){fail(err);} }
 
 function onlineMyHandHTML(room,mySeat){
   const me = room.players[mySeat];
@@ -446,7 +468,7 @@ function renderOnlineHub(room){
     <details class="disclose" open>
       <summary>The Omen Row <span class="small muted">(${room.omenRow.length})</span></summary>
       <div class="disclose-body">
-        <div class="cardgrid compact">${room.omenRow.map(o=>omenCard(o)).join('')}</div>
+        <div class="cardgrid compact">${room.omenRow.map((o,i)=>`<div>${omenCard(o)}<button class="ghost" onclick="onlineVoteOmen(${i})">Vote to replace (${Object.values(room.omenVotes||{}).filter(v=>v===i).length}/${room.players.length})</button></div>`).join('')}</div>
       </div>
     </details>
     <details class="disclose">
@@ -484,7 +506,7 @@ export function openOnlineHand(){
   });
 }
 export function onlineStartScene(){
-  draft = {cardIdx:null, archIdx:null};
+  draft = {cardIdx:null, archIdx:null, archIdxs:[]};
   renderOnlineScenePick();
   show('scr-scene');
 }
@@ -563,6 +585,7 @@ function renderOnlineScenePick(){
     <div class="panel">
       <label class="fld">What the camera sees as the scene opens</label>
       <textarea id="scene-opening" placeholder="The camera drifts through…"></textarea>
+      <div class="btnrow">${bleakifyButton('scene-opening','scene')}</div>
       <div class="btnrow">
         <button class="primary" id="btn-begin" disabled onclick="onlineBeginScene()">Begin the Scene</button>
         <button class="ghost" onclick="routeAndRenderCurrent()">Back to the Table</button>
@@ -578,17 +601,19 @@ export function onlinePickSceneCard(i){
   onlineCheckBegin();
 }
 export function onlinePickArch(i){
-  draft.archIdx = i;
+  draft.archIdxs=draft.archIdxs||[];
+  const at=draft.archIdxs.indexOf(i);
+  if(at>=0) draft.archIdxs.splice(at,1); else if(draft.archIdxs.length<2) draft.archIdxs.push(i);
+  draft.archIdx=draft.archIdxs[0] ?? null;
   document.querySelectorAll('[id^="arch-pick-"]').forEach(el=>{ el.classList.remove('selected'); el.setAttribute('aria-pressed','false'); });
-  $('arch-pick-'+i).classList.add('selected');
-  $('arch-pick-'+i).setAttribute('aria-pressed','true');
+  draft.archIdxs.forEach(n=>{ $('arch-pick-'+n).classList.add('selected'); $('arch-pick-'+n).setAttribute('aria-pressed','true'); });
   onlineCheckBegin();
 }
 function onlineCheckBegin(){
-  $('btn-begin').disabled = !(draft.cardIdx!=null && draft.archIdx!=null);
+  $('btn-begin').disabled = !(draft.cardIdx!=null && (draft.archIdxs||[]).length>0);
 }
 export async function onlineBeginScene(){
-  try{ await liveBeginScene(State.onlineRoomCode, draft.cardIdx, draft.archIdx, $('scene-opening').value); }
+  try{ await liveBeginScene(State.onlineRoomCode, draft.cardIdx, draft.archIdxs||[draft.archIdx], $('scene-opening').value); }
   catch(err){ fail(err); }
 }
 export function routeAndRenderCurrent(){
@@ -604,10 +629,10 @@ function renderOnlineScene(room,animateSlot=null){
   const c = room.current, p = room.players[c.starter];
   const mySeat = mySeatIndex(room);
   const iAmStarter = mySeat===c.starter;
-  const iAlreadyContributed = c.contributions.some(x=>x.pi===mySeat);
+  const myContributionCount = c.contributions.filter(x=>x.pi===mySeat).length;
 
   let addingHTML = '';
-  if(!iAmStarter && !iAlreadyContributed && c.contributions.length < maxContrib()){
+  if(!iAmStarter && myContributionCount<2 && c.contributions.length < maxContrib()){
     if(!draft.adding){
       addingHTML = `<div class="btnrow"><button class="ghost" onclick="onlineStartContrib()">Play a card into this scene</button></div>`;
     } else if(!draft.adding.pick){
@@ -623,6 +648,7 @@ function renderOnlineScene(room,animateSlot=null){
         <div style="max-width:280px">${pk.kind==='scene'?sceneCardHTML(card):omenCard(card)}</div>
         <label class="fld">How does it manifest in the scene?</label>
         <textarea id="contrib-how" oninput="onlineSetContribHow(this.value)">${esc(draft.adding.how||'')}</textarea>
+        <div class="btnrow">${bleakifyButton('contrib-how','omen')}</div>
         <div class="btnrow">
           <button class="primary" onclick="onlineConfirmContrib()">Play It</button>
           <button class="ghost" onclick="onlineCancelContrib()">Never mind</button>
@@ -634,7 +660,8 @@ function renderOnlineScene(room,animateSlot=null){
     <div class="panel spotlight">
       <label class="fld">The record of what happens</label>
       <p class="small muted" style="margin-bottom:6px">Play the scene aloud. Note what the Chronicle should remember: who appeared, what was said, and what was discovered.</p>
-      <textarea id="scene-happened" style="min-height:130px" oninput="onlineSetSceneHappened(this.value)" placeholder="What the Chronicle will remember of this scene…">${esc(draft.happened||'')}</textarea>
+        <textarea id="scene-happened" style="min-height:130px" oninput="onlineSetSceneHappened(this.value)" placeholder="What the Chronicle will remember of this scene…">${esc(draft.happened||'')}</textarea>
+        <div class="btnrow">${bleakifyButton('scene-happened','record')}</div>
       <div class="btnrow"><button class="blood" onclick="onlineEndScene()">The scene ends</button></div>
     </div>` : renderOnlineResolveInline(room)) : '';
 
@@ -722,6 +749,7 @@ function renderOnlineSecret(room){
       <div class="panel spotlight">
         <label class="fld" style="color:#c9b3de">The vignette</label>
         <textarea id="secret-answer" style="min-height:120px" oninput="onlineSetSecretAnswer(this.value)">${esc(draft.secretAnswer||'')}</textarea>
+        <div class="btnrow">${bleakifyButton('secret-answer','secret reveal')}</div>
         <div class="btnrow"><button class="primary" ${sel.length!==Math.min(3,room.omenRow.length)?'disabled':''} onclick="onlineConfirmSecret()">So It Is Revealed</button></div>
       </div>
     </div>`;

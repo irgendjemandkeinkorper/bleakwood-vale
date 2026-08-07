@@ -1,9 +1,10 @@
-import { $, esc, toneBadge } from '../engine/utils.js';
+import { $, esc, toneBadge, shuffle } from '../engine/utils.js';
 import { State } from '../engine/state.js';
 import { show } from './screens.js';
 import { faceUp, matchSecret } from '../engine/rules.js';
 import { omenCard, sceneTrackerHTML } from './cards.js';
 import { afterSceneFlow } from './hub.js';
+import { bleakifyButton } from './bleakify.js';
 
 /* ---------------- resolution ---------------- */
 export function endScene(){
@@ -43,18 +44,21 @@ export function applyResolve(){
   G.archetypes.forEach((a,i)=>{
     if($('flip-'+i).checked){ a.flipped = !a.flipped; flips.push(`${a.name||a.role} turned to side ${a.flipped?'II':'I'}`); }
   });
-  const lead = G.archetypes[c.archIdx];
+  const leadIndices = c.archIdxs?.length ? c.archIdxs : [c.archIdx];
+  const lead = G.archetypes[leadIndices[0]];
   const tones = [];
   if(c.card.tone) tones.push(c.card.tone);
   c.contributions.forEach(x=>{ if(x.kind==='scene') tones.push(x.card.tone); });
-  tones.push(faceUp(lead).tone);
+  leadIndices.forEach(i=>tones.push(faceUp(G.archetypes[i]).tone));
   G.discardTones.push(...tones);
-  c.contributions.forEach(x=>{ if(x.kind==='omen') G.players[x.pi].omens.push(x.card); });
+  const usedOmens=c.contributions.filter(x=>x.kind==='omen').map(x=>x.card);
+  G.omenDeck=shuffle(G.omenDeck.concat(usedOmens));
+  while(G.omenRow.length<6 && G.omenDeck.length) G.omenRow.push(G.omenDeck.shift());
 
   G.journal.push({
     type:c.type, act:G.act,
     playerName:G.players[c.starter].name,
-    archName:lead.name||lead.role, archRole:lead.role,
+    archName:leadIndices.map(i=>G.archetypes[i].name||G.archetypes[i].role).join(' + '), archRole:leadIndices.map(i=>G.archetypes[i].role).join(' + '),
     cardTitle:c.card.title, cardPrompt:c.card.prompt, element:c.element||null,
     opening:c.opening, happened:c.happened,
     contributions:c.contributions.map(x=>({playerName:G.players[x.pi].name, kind:x.kind,
@@ -97,6 +101,7 @@ export function renderSecretUnlock(unlock, tones){
         <label class="fld" style="color:#c9b3de">The vignette</label>
         <p class="small muted" style="margin-bottom:6px">Use the three omens — literally, metaphorically, obliquely — to show us the answer.</p>
         <textarea id="secret-answer" style="min-height:120px" placeholder="Show us…"></textarea>
+        <div class="btnrow">${bleakifyButton('secret-answer','secret reveal')}</div>
         <div class="btnrow">
           <button class="primary" id="btn-secret" disabled onclick="confirmSecret()">So It Is Revealed</button>
         </div>

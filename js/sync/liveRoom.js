@@ -26,7 +26,7 @@ function emptyPlayer(name, uid){
   // rooms/{code}/private/{uid}. This public record only carries counts
   // (and omens, which were never secret) so other players' UIs can show
   // "has 3 cards, 1 unrevealed secret" without ever reading their data.
-  return {name, uid, omens:[], handCount:0, secretsCount:0, unrevealedSecretsCount:0, scenesLeft:0};
+  return {name, uid, omens:[], handCount:0, secretsCount:0, unrevealedSecretsCount:0, scenesLeft:0, readyRole:null};
 }
 
 export async function createRoom(hook, hostName, artStyle){
@@ -38,9 +38,10 @@ export async function createRoom(hook, hostName, artStyle){
     seats:{[uid]:0},
     act:0, archetypes:[], victim:{name:'', facts:[]},
     sceneDeck:[], discardTones:[], omenDeck:[], omenRow:[],
-    actClose:{}, journal:[], current:null, archIdx:0,
+    actClose:{}, journal:[], current:null, archIdx:0, omenVotes:{},
     firstScenePlayer:null, closeDone:false, pendingSecret:null,
     createdAt: Date.now()
+    ,lastActiveAt: Date.now(), expireAt: Date.now()+60*60*1000
   });
   // Pre-create my own private doc. Not strictly required by the rules
   // (I could write it lazily later, since I always have write access to
@@ -78,6 +79,14 @@ export function subscribeRoom(code, onChange){
   if(unsub) unsub();
   unsub = onSnapshot(roomRef(code), snap => { if(snap.exists()) onChange(snap.data()); });
   return unsub;
+}
+export async function touchRoom(code){
+  if(!code) return;
+  await runTransaction(db, async tx=>{
+    const snap=await tx.get(roomRef(code));
+    if(!snap.exists()) return;
+    const now=Date.now(); tx.update(roomRef(code),{lastActiveAt:now,expireAt:now+60*60*1000});
+  });
 }
 export function unsubscribeRoom(){ if(unsub){ unsub(); unsub=null; } }
 

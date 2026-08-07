@@ -49,12 +49,16 @@ function localTurnSeatHTML(G,p,i){
     <div class="turn-seat-head"><strong>${esc(p.name)}</strong><span>${label}</span></div>
     <p>${p.scenesLeft} scene${p.scenesLeft===1?'':'s'} left to lead · ${p.hand.length} scene card${p.hand.length===1?'':'s'} · ${p.omens.length} held omen${p.omens.length===1?'':'s'}</p>
     <div class="turn-seat-actions">
+      <button class="ghost" onclick="toggleReady(${i},'lead')">${p.readyRole==='lead'?'✓ ':''}Ready to lead</button>
+      <button class="ghost" onclick="toggleReady(${i},'follow')">${p.readyRole==='follow'?'✓ ':''}Ready to follow</button>
+      <button class="ghost" onclick="toggleReady(${i},'watch')">${p.readyRole==='watch'?'✓ ':''}Ready to watch</button>
       ${state==='ready'?`<button class="primary" onclick="startSceneFor(${i})">Begin a scene</button>`:''}
       ${state==='blocked' && p.scenesLeft>0?`<button class="blood" onclick="forfeitScene(${i})">Forfeit scene</button>`:''}
       <button class="ghost" onclick="openLocalHand(${i})">View ${esc(p.name)}’s cards</button>
     </div>
   </div>`;
 }
+export function toggleReady(pi,role){ const p=State.G.players[pi]; p.readyRole=p.readyRole===role?null:role; renderHub(); }
 
 /* ---------------- acts ---------------- */
 export function startAct(act){
