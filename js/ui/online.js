@@ -357,8 +357,8 @@ export async function onlineSaveArchSetup(){
   } catch(err){ fail(err); }
 }
 export async function onlineSwapArchSetup(){
-  const used=new Set(State.G.archetypes.map(a=>a.id));
-  const replacement=ARCHETYPES.find(a=>!used.has(a.id)); if(!replacement) return;
+  const used=new Set(State.G.archetypes.map(a=>a.role));
+  const replacement=ARCHETYPES.find(a=>!used.has(a.role)); if(!replacement) return;
   try{ await liveSwapArchetype(State.onlineRoomCode,State.G.archIdx,replacement); }catch(err){fail(err);}
 }
 

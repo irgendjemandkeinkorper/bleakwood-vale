@@ -106,8 +106,8 @@ export function renderArchSetup(){
     </div>`;
 }
 export function swapArchSetup(){
-  const G=State.G, used=new Set(G.archetypes.map(a=>a.id));
-  const replacement=shuffle(ARCHETYPES).find(a=>!used.has(a.id)); if(!replacement) return;
+  const G=State.G, used=new Set(G.archetypes.map(a=>a.role));
+  const replacement=shuffle(ARCHETYPES).find(a=>!used.has(a.role)); if(!replacement) return;
   G.archetypes[G.archIdx]={...replacement,name:'',setupA:'',answeredBy:'',flipped:false}; renderArchSetup();
 }
 export function saveArchSetup(){

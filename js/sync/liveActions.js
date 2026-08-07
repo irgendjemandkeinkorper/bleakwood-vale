@@ -398,7 +398,7 @@ export async function liveSwapArchetype(code, index, replacement){
   await runTransaction(db, async t=>{
     const room=await readRoom(t,code);
     if(room.phase!=='archsetup' || index!==room.archIdx) throw new Error('That archetype is no longer being established.');
-    const used=new Set(room.archetypes.map(a=>a.id)); if(used.has(replacement.id)) throw new Error('That archetype is already in the setup.');
+    const used=new Set(room.archetypes.map(a=>a.role)); if(used.has(replacement.role)) throw new Error('That archetype is already in the setup.');
     room.archetypes[index]={...replacement,name:'',setupA:'',answeredBy:'',flipped:false}; t.set(roomRef(code),room);
   });
 }
