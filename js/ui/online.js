@@ -67,6 +67,21 @@ let renderedScene = {signature:null, contributions:0};
 function clearAdvanceTimer(){ if(advanceTimer){ clearTimeout(advanceTimer); advanceTimer = null; } }
 function clearRoomHeartbeat(){ if(roomHeartbeat){ clearInterval(roomHeartbeat); roomHeartbeat=null; } }
 
+function renderOnlineScreen(id, renderer){
+  const active=document.querySelector('.screen.active');
+  const staying=active?.id===id;
+  const focused=document.activeElement;
+  const focusId=focused?.id;
+  const selectionStart=typeof focused?.selectionStart==='number' ? focused.selectionStart : null;
+  const selectionEnd=typeof focused?.selectionEnd==='number' ? focused.selectionEnd : null;
+  const scrollY=window.scrollY;
+  renderer();
+  if(!staying){ show(id); return; }
+  const next=focusId ? $(focusId) : null;
+  if(next){ next.focus(); if(selectionStart!==null) next.setSelectionRange(selectionStart,selectionEnd); }
+  requestAnimationFrame(()=>window.scrollTo({top:scrollY,left:0,behavior:'auto'}));
+}
+
 function sceneAnimationSlot(room){
   const c = room.current;
   if(!c){ renderedScene = {signature:null,contributions:0}; return null; }
@@ -246,19 +261,19 @@ export function routeAndRender(room){
   State.G = room;
   preserveDraftFor(room);
   reactToRoom(room);
-  if(room.phase==='lobby'){ renderOnlineLobby(room); show('scr-online-lobby'); return; }
-  if(room.phase==='finished' || room.act>3){ renderChronicle(false); show('scr-chronicle'); return; }
-  if(room.phase==='archsetup'){ renderOnlineArchSetup(room); show('scr-archsetup'); return; }
-  if(room.phase==='victim'){ renderOnlineVictim(room); show('scr-victim'); return; }
+  if(room.phase==='lobby'){ renderOnlineScreen('scr-online-lobby',()=>renderOnlineLobby(room)); return; }
+  if(room.phase==='finished' || room.act>3){ renderOnlineScreen('scr-chronicle',()=>renderChronicle(false)); return; }
+  if(room.phase==='archsetup'){ renderOnlineScreen('scr-archsetup',()=>renderOnlineArchSetup(room)); return; }
+  if(room.phase==='victim'){ renderOnlineScreen('scr-victim',()=>renderOnlineVictim(room)); return; }
   // phase === 'playing'
   if(room.pendingSecret){
-    if(mySeatIndex(room)===room.pendingSecret.pi){ renderOnlineSecret(room); show('scr-secret'); return; }
-    renderOnlineHub(room); show('scr-hub'); return; // banner inside renderOnlineHub explains the wait
+    if(mySeatIndex(room)===room.pendingSecret.pi){ renderOnlineScreen('scr-secret',()=>renderOnlineSecret(room)); return; }
+    renderOnlineScreen('scr-hub',()=>renderOnlineHub(room)); return; // banner inside renderOnlineHub explains the wait
   }
-  if(room.current){ renderOnlineScene(room,animateSlot); show('scr-scene'); return; }
+  if(room.current){ renderOnlineScreen('scr-scene',()=>renderOnlineScene(room,animateSlot)); return; }
   const remaining = room.players.reduce((s,p)=>s+p.scenesLeft,0);
-  if(remaining<=0 && !room.closeDone){ renderOnlineCloseIntro(room); show('scr-close'); return; }
-  renderOnlineHub(room); show('scr-hub');
+  if(remaining<=0 && !room.closeDone){ renderOnlineScreen('scr-close',()=>renderOnlineCloseIntro(room)); return; }
+  renderOnlineScreen('scr-hub',()=>renderOnlineHub(room));
 }
 
 /* ---------------- lobby ---------------- */
