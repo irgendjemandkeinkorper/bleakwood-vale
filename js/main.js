@@ -9,7 +9,7 @@ import { showIdleClicker, idleClick } from './ui/idle.js';
 import { showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail,
          closeGalleryDetail, galleryImgError, flipGalleryCard } from './ui/gallery.js';
 import { renderHooks, chooseHook, renderPlayerInputs, confirmPlayers,
-         beginArchSetup, saveArchSetup, finishVictim, swapArchSetup } from './ui/setup.js';
+         beginArchSetup, saveArchSetup, finishVictim, swapArchSetup, chooseArchSwap } from './ui/setup.js';
 import { renderHub, tradeOmen, forfeitScene, beginClose, openLocalHand, toggleReady } from './ui/hub.js';
 import { startSceneFor, pickSceneCard, pickArch, beginScene, pickContrib,
          pickContribScene, pickContribOmen, confirmContrib, cancelContrib,
@@ -31,14 +31,14 @@ import {
   onlineConfirmContrib, onlineEndScene, onlineApplyResolve,
   onlineToggleSecretOmen, onlineConfirmSecret,
   onlineAnswerForAbsent, onlineCopyRoomLink, onlineDismissScenePrimer,
-  onlineRefreshArtPicker, openOnlineHand, onlineSetReady, onlineSwapArchSetup, onlineVoteOmen
+  onlineRefreshArtPicker, openOnlineHand, onlineSetReady, onlineSwapArchSetup, onlineChooseArchSwap, onlineVoteOmen
 } from './ui/online.js';
 
 Object.assign(window, {
   show, flipArchCard, gameArtImgError, showIdleClicker, idleClick, dismissFirstrunHint,
   showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail, closeGalleryDetail,
   galleryImgError, flipGalleryCard,
-  chooseHook, renderPlayerInputs, confirmPlayers, beginArchSetup, saveArchSetup, finishVictim, swapArchSetup, openCardDetail,
+  chooseHook, renderPlayerInputs, confirmPlayers, beginArchSetup, saveArchSetup, finishVictim, swapArchSetup, chooseArchSwap, openCardDetail,
   renderHub, tradeOmen, forfeitScene, beginClose, openLocalHand, toggleReady,
   startSceneFor, pickSceneCard, pickArch, beginScene, pickContrib, pickContribScene, pickContribOmen,
   confirmContrib, cancelContrib, setContribHow, setSceneHappened, dismissScenePrimer,
@@ -55,7 +55,7 @@ Object.assign(window, {
   onlineConfirmContrib, onlineEndScene, onlineApplyResolve,
   onlineToggleSecretOmen, onlineConfirmSecret,
   onlineAnswerForAbsent, onlineCopyRoomLink, onlineDismissScenePrimer,
-  onlineRefreshArtPicker, openOnlineHand, onlineSetReady, onlineSwapArchSetup, onlineVoteOmen
+  onlineRefreshArtPicker, openOnlineHand, onlineSetReady, onlineSwapArchSetup, onlineChooseArchSwap, onlineVoteOmen
 });
 document.getElementById('save-import-input')?.addEventListener('change', handleStateImport);
 

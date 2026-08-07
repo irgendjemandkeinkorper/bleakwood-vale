@@ -184,6 +184,7 @@ export async function onlineJoinRoom(){
   try{
     const code = ($('oe-join-code').value||'').trim().toUpperCase();
     const name = ($('oe-join-name').value||'').trim();
+    if(!name) throw new Error('Enter your name before joining the table.');
     await joinRoom(code, name);
     localStorage.setItem('bleakwood-player-name',name);
     enterRoom(code);
@@ -219,11 +220,18 @@ export async function tryAutoRejoin(){
   const params = new URLSearchParams(location.search);
   const code = params.get('room') || localStorage.getItem('bleakwood-room-code');
   if(!code) return false;
+  const rememberedName=localStorage.getItem('bleakwood-player-name')||'';
+  if(!rememberedName){
+    showOnlineEntry();
+    const codeInput=$('oe-join-code');
+    if(codeInput){ codeInput.value=code.toUpperCase(); codeInput.focus(); }
+    return false;
+  }
   try {
     await ensureSignedIn();
     // joinRoom() is a no-op write if we're already seated, which is exactly
     // the reconnect case; it throws if we're a stranger to a live game.
-    await joinRoom(code, localStorage.getItem('bleakwood-player-name')||'');
+    await joinRoom(code, rememberedName);
     enterRoom(code);
     return true;
   } catch(err){
@@ -300,7 +308,13 @@ export async function onlineCopyRoomLink(){
   const url = location.origin + location.pathname + '?room=' + State.onlineRoomCode;
   const btn = $('btn-copy-link');
   try {
-    await navigator.clipboard.writeText(url);
+    if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(url);
+    else {
+      const field=document.createElement('textarea'); field.value=url; field.setAttribute('readonly','');
+      field.style.position='fixed'; field.style.opacity='0'; document.body.appendChild(field); field.select();
+      if(!document.execCommand('copy')) throw new Error('Clipboard copy was blocked.');
+      field.remove();
+    }
     if(btn){ const orig = btn.textContent; btn.textContent = 'Copied!'; setTimeout(()=>{ if(btn.isConnected) btn.textContent = orig; }, 1800); }
   } catch(err) {
     fail(new Error('Could not copy automatically — the link is: ' + url));
@@ -331,7 +345,8 @@ function renderOnlineArchSetup(room){
         <hr class="rule" style="border-color:rgba(60,45,25,.3)">
         <div style="font-size:1.05rem">“${a.setup[room.hook.id]}”</div>
         <div class="small" style="margin-top:8px;color:var(--blood)">${toneBadge(a.sides[0].tone)} <span style="color:var(--ink-soft)">— ${esc(a.sides[0].cond)} flip this card.</span></div>
-        <div class="btnrow"><button class="ghost" onclick="onlineSwapArchSetup()">Swap this archetype</button></div>
+        <div class="btnrow"><button class="ghost" onclick="onlineSwapArchSetup()">Show three replacement options</button></div>
+        ${draft.archSwapOptions?.length ? `<div class="panel tight"><p class="small muted">Choose a replacement:</p><div class="btnrow">${draft.archSwapOptions.map((x,n)=>`<button class="ghost" onclick="onlineChooseArchSwap(${n})">${esc(x.role)}</button>`).join('')}</div></div>` : ''}
         </div>
       </div>
       <div class="panel">
@@ -358,8 +373,11 @@ export async function onlineSaveArchSetup(){
 }
 export async function onlineSwapArchSetup(){
   const used=new Set(State.G.archetypes.map(a=>a.role));
-  const replacement=ARCHETYPES.find(a=>!used.has(a.role)); if(!replacement) return;
-  try{ await liveSwapArchetype(State.onlineRoomCode,State.G.archIdx,replacement); }catch(err){fail(err);}
+  draft.archSwapOptions=ARCHETYPES.filter(a=>!used.has(a.role)).sort(()=>Math.random()-.5).slice(0,3); renderOnlineArchSetup(State.G);
+}
+export async function onlineChooseArchSwap(index){
+  const replacement=(draft.archSwapOptions||[])[index]; if(!replacement) return;
+  try{ await liveSwapArchetype(State.onlineRoomCode,State.G.archIdx,replacement); draft.archSwapOptions=[]; }catch(err){fail(err);}
 }
 
 /* ---------------- victim ---------------- */
