@@ -684,6 +684,11 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
 .turn-seat>p{color:#96896f;font-size:.75rem;line-height:1.3}
 .turn-seat-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:2px}
 .turn-seat-actions button{padding:6px 11px;font-size:.76rem}
+.ready-role{transition:background .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease}
+.ready-role.selected{font-weight:700;box-shadow:0 0 0 1px currentColor,0 0 12px rgba(255,255,255,.08)}
+.ready-role-lead.selected{border-color:#a94747;color:#f0a0a0;background:rgba(126,38,38,.32)}
+.ready-role-follow.selected{border-color:#6e83ba;color:#b8c8f2;background:rgba(51,70,132,.34)}
+.ready-role-watch.selected{border-color:#b28c45;color:#f0d28d;background:rgba(125,91,24,.32)}
 .personal-hand{border-color:rgba(199,214,204,.4)}
 .personal-hand>summary{color:#c7d6cc}
 .hand-section-label{

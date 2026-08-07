@@ -419,7 +419,7 @@ function onlineTurnSeatHTML(room,p,i,mySeat){
       ${state==='ready' && isMe?'<button class="primary" onclick="onlineStartScene()">Begin a scene</button>':''}
       ${state==='blocked' && p.scenesLeft>0?`<button class="blood" onclick="onlineForfeitScene(${i})">${isMe?'Forfeit my scene':`Forfeit for ${esc(p.name)}`}</button>`:''}
       ${isMe?`<button class="ghost" onclick="openOnlineHand()">View my cards (${myPrivate.hand.length+p.omens.length})</button>`:''}
-      ${isMe?`<div class="ready-controls"><button class="ghost" onclick="onlineSetReady('lead')">${p.readyRole==='lead'?'✓ ':''}Ready to lead</button><button class="ghost" onclick="onlineSetReady('follow')">${p.readyRole==='follow'?'✓ ':''}Ready to follow</button><button class="ghost" onclick="onlineSetReady('watch')">${p.readyRole==='watch'?'✓ ':''}Ready to watch</button></div>`:''}
+      ${isMe?`<div class="ready-controls"><button class="ghost ready-role ready-role-lead${p.readyRole==='lead'?' selected':''}" aria-pressed="${p.readyRole==='lead'}" onclick="onlineSetReady('lead')">${p.readyRole==='lead'?'✓ ':''}Ready to lead</button><button class="ghost ready-role ready-role-follow${p.readyRole==='follow'?' selected':''}" aria-pressed="${p.readyRole==='follow'}" onclick="onlineSetReady('follow')">${p.readyRole==='follow'?'✓ ':''}Ready to follow</button><button class="ghost ready-role ready-role-watch${p.readyRole==='watch'?' selected':''}" aria-pressed="${p.readyRole==='watch'}" onclick="onlineSetReady('watch')">${p.readyRole==='watch'?'✓ ':''}Ready to watch</button></div>`:''}
     </div>
   </div>`;
 }
