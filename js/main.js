@@ -31,7 +31,7 @@ import {
   onlineConfirmContrib, onlineEndScene, onlineApplyResolve,
   onlineToggleSecretOmen, onlineConfirmSecret,
   onlineAnswerForAbsent, onlineCopyRoomLink, onlineDismissScenePrimer,
-  onlineRefreshArtPicker, openOnlineHand
+  onlineRefreshArtPicker, openOnlineHand, onlineSetReady, onlineSwapArchSetup, onlineVoteOmen
 } from './ui/online.js';
 
 Object.assign(window, {
