@@ -45,8 +45,9 @@ function localTurnSeatHTML(G,p,i){
   const needsTrade = p.hand.length===0 && !noWayToLead;
   const state = p.scenesLeft<=0 ? 'done' : noWayToLead ? 'blocked' : needsTrade ? 'trade' : 'ready';
   const label = state==='done' ? 'Finished this act' : state==='blocked' ? 'No card to lead' : state==='trade' ? 'Trade first' : 'Ready to lead';
+  const readyLabel = p.readyRole==='lead' ? 'Ready to lead' : p.readyRole==='follow' ? 'Ready to follow' : p.readyRole==='watch' ? 'Ready to watch' : '';
   return `<div class="turn-seat ${state}">
-    <div class="turn-seat-head"><strong>${esc(p.name)}</strong><span>${label}</span></div>
+    <div class="turn-seat-head"><strong>${esc(p.name)}</strong><span>${readyLabel?`<em class="ready-badge ready-badge-${p.readyRole}">${readyLabel}</em>`:label}</span></div>
     <p>${p.scenesLeft} scene${p.scenesLeft===1?'':'s'} left to lead · ${p.hand.length} scene card${p.hand.length===1?'':'s'} · ${p.omens.length} held omen${p.omens.length===1?'':'s'}</p>
     <div class="turn-seat-actions">
       <button class="ghost ready-role ready-role-lead${p.readyRole==='lead'?' selected':''}" aria-pressed="${p.readyRole==='lead'}" onclick="toggleReady(${i},'lead')">${p.readyRole==='lead'?'✓ ':''}Ready to lead</button>

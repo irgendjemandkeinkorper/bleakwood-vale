@@ -689,6 +689,10 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
 .ready-role-lead.selected{border-color:#a94747;color:#f0a0a0;background:rgba(126,38,38,.32)}
 .ready-role-follow.selected{border-color:#6e83ba;color:#b8c8f2;background:rgba(51,70,132,.34)}
 .ready-role-watch.selected{border-color:#b28c45;color:#f0d28d;background:rgba(125,91,24,.32)}
+.ready-badge{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:2px 7px;font-size:.68rem;font-style:normal;letter-spacing:.03em;white-space:nowrap}
+.ready-badge-lead{color:#f0a0a0;background:rgba(126,38,38,.28)}
+.ready-badge-follow{color:#b8c8f2;background:rgba(51,70,132,.28)}
+.ready-badge-watch{color:#f0d28d;background:rgba(125,91,24,.28)}
 .personal-hand{border-color:rgba(199,214,204,.4)}
 .personal-hand>summary{color:#c7d6cc}
 .hand-section-label{

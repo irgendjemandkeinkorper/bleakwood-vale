@@ -412,8 +412,9 @@ function onlineTurnSeatHTML(room,p,i,mySeat){
   const needsTrade = p.handCount===0 && !noWayToLead;
   const state = p.scenesLeft<=0 ? 'done' : noWayToLead ? 'blocked' : needsTrade ? 'trade' : 'ready';
   const label = state==='done' ? 'Finished this act' : state==='blocked' ? 'No card to lead' : state==='trade' ? 'Trade first' : isMe ? 'You are ready' : 'Ready to lead';
+  const readyLabel = p.readyRole==='lead' ? 'Ready to lead' : p.readyRole==='follow' ? 'Ready to follow' : p.readyRole==='watch' ? 'Ready to watch' : '';
   return `<div class="turn-seat ${state}${isMe?' mine':''}">
-    <div class="turn-seat-head"><strong>${esc(p.name)}${isMe?' · you':''}</strong><span>${label}</span></div>
+    <div class="turn-seat-head"><strong>${esc(p.name)}${isMe?' · you':''}</strong><span>${readyLabel?`<em class="ready-badge ready-badge-${p.readyRole}">${readyLabel}</em>`:label}</span></div>
     <p>${p.scenesLeft} scene${p.scenesLeft===1?'':'s'} left to lead · ${p.handCount} scene card${p.handCount===1?'':'s'} · ${p.omens.length} held omen${p.omens.length===1?'':'s'}</p>
     <div class="turn-seat-actions">
       ${state==='ready' && isMe?'<button class="primary" onclick="onlineStartScene()">Begin a scene</button>':''}
