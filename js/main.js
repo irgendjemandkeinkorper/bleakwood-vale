@@ -7,7 +7,7 @@ import { flipArchCard, openCardDetail } from './ui/cards.js';
 import { gameArtImgError } from './ui/art.js';
 import { showIdleClicker, idleClick } from './ui/idle.js';
 import { showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail,
-         closeGalleryDetail, galleryImgError, flipGalleryCard } from './ui/gallery.js';
+         closeGalleryDetail, galleryImgError, flipGalleryCard, navigateGallery } from './ui/gallery.js';
 import { renderHooks, chooseHook, renderPlayerInputs, confirmPlayers,
          beginArchSetup, saveArchSetup, finishVictim, swapArchSetup, chooseArchSwap } from './ui/setup.js';
 import { renderHub, tradeOmen, forfeitScene, beginClose, openLocalHand, toggleReady } from './ui/hub.js';
@@ -37,7 +37,7 @@ import {
 Object.assign(window, {
   show, flipArchCard, gameArtImgError, showIdleClicker, idleClick, dismissFirstrunHint,
   showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail, closeGalleryDetail,
-  galleryImgError, flipGalleryCard,
+  galleryImgError, flipGalleryCard, navigateGallery,
   chooseHook, renderPlayerInputs, confirmPlayers, beginArchSetup, saveArchSetup, finishVictim, swapArchSetup, chooseArchSwap, openCardDetail,
   renderHub, tradeOmen, forfeitScene, beginClose, openLocalHand, toggleReady,
   startSceneFor, pickSceneCard, pickArch, beginScene, pickContrib, pickContribScene, pickContribOmen,

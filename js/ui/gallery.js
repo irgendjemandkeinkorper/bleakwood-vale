@@ -2,7 +2,7 @@ import { $, esc, slugify } from '../engine/utils.js';
 import { CARD_ARCHETYPES, CARD_VICTIMS, HOOKS, OMENS, pairedCardStem } from '../data/index.js';
 import { openOverlay } from './screens.js';
 import { State } from '../engine/state.js';
-import { ART_STYLES, currentArtStyle } from './art.js';
+import { ART_STYLES, currentArtStyle, applyArtStyleTheme } from './art.js';
 
 /* The card-art Gallery is available from the title screen and mid-game.
    Its cards come from the static data tables; State.G is consulted only
@@ -110,6 +110,7 @@ export function flipGalleryCard(btn){
 export function showGallery(){
   gState.detail = null;
   if(State.G) gState.style = currentArtStyle(State.G);
+  applyArtStyleTheme(gState.style);
   renderGallery();
   openOverlay();
 }
@@ -130,7 +131,7 @@ function renderGallery(){
     <div class="ggrid gcat-${gState.cat}" style="margin-top:16px">${tiles.map(tileHTML).join('')}</div>
     <div class="btnrow" style="justify-content:center;margin-top:20px"><button class="primary" onclick="closeOverlay()">Back to the Vale</button></div>`;
 }
-export function setGalleryStyle(style){ if(State.G) return; gState.style = style; renderGallery(); }
+export function setGalleryStyle(style){ if(State.G) return; gState.style = style; applyArtStyleTheme(style); renderGallery(); }
 export function setGalleryCat(cat){ gState.cat = cat; renderGallery(); }
 export function openGalleryDetail(cat, key){
   const c = CATS.find(x=>x.id===cat);
@@ -140,6 +141,33 @@ export function openGalleryDetail(cat, key){
   renderGallery();
 }
 export function closeGalleryDetail(){ gState.detail = null; renderGallery(); }
+export function navigateGallery(delta){
+  if(!gState.detail) return;
+  const active = CATS.find(x=>x.id===gState.cat);
+  const tiles = active?.build(gState.style) || [];
+  const index = tiles.findIndex(tile=>tile.key===gState.detail.key);
+  if(index<0 || !tiles.length) return;
+  gState.detail = tiles[(index + delta + tiles.length) % tiles.length];
+  renderGallery();
+}
+window.addEventListener('keydown', event=>{
+  if(!gState.detail || $('overlay').style.display!=='block') return;
+  if(event.key==='ArrowLeft' || event.key==='ArrowRight'){
+    event.preventDefault();
+    navigateGallery(event.key==='ArrowRight'?1:-1);
+  }
+});
+/* The overlay can close via Escape/Backspace/browser-Back without ever
+   calling closeGalleryDetail() — without this, a stale gState.detail would
+   make the next Escape's arrow-key handler silently overwrite whatever the
+   overlay shows next (e.g. Rules) with the old Gallery detail view. Also
+   hand the surrounding chrome back to the active tale's own visual
+   language (or the default) once the Gallery — which may have switched
+   the theme to preview its own style picker — is dismissed. */
+document.addEventListener('sp:overlayClosed', ()=>{
+  gState.detail = null;
+  applyArtStyleTheme(State.G ? currentArtStyle(State.G) : undefined);
+});
 function detailHTML(){
   const t = gState.detail;
   return `
@@ -152,5 +180,9 @@ function detailHTML(){
       ${t.flavor?`<p class="gallery-flavor" ${t.flippable?`data-gallery-side-flavor data-front-flavor="${esc(t.flavor)}" data-back-flavor="${esc(t.backFlavor)}"`:''}>${esc(t.flavor)}</p>`:''}
       ${t.flippable?'<p class="small muted" style="margin-top:8px">Use the turn button on the card to compare its two faces.</p>':''}
     </div>
-    <div class="btnrow" style="justify-content:center;margin-top:16px"><button class="primary" onclick="closeGalleryDetail()">← Back to the Gallery</button></div>`;
+    <div class="btnrow gallery-nav" style="justify-content:center;margin-top:16px">
+      <button class="ghost" onclick="navigateGallery(-1)" aria-label="Previous gallery card">← Previous</button>
+      <button class="primary" onclick="closeGalleryDetail()">Back to the Gallery</button>
+      <button class="ghost" onclick="navigateGallery(1)" aria-label="Next gallery card">Next →</button>
+    </div>`;
 }

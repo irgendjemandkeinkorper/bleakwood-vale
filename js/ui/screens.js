@@ -1,9 +1,10 @@
-import { $, ACT_NAMES } from '../engine/utils.js';
+import { $, ACT_NAMES, toneCountBadge } from '../engine/utils.js';
 import { TONES } from '../data/index.js';
 import { actToneCounts } from '../engine/rules.js';
 import { State } from '../engine/state.js';
 import { mirrorState } from '../sync/rooms.js';
 import { hasSeenIntro, markIntroSeen } from '../engine/firstrun.js';
+import { applyArtStyleTheme } from './art.js';
 
 /* ---------------- browser history (Back button) ----------------
    A lightweight stack riding on the History API: every screen swap and
@@ -26,6 +27,15 @@ export function show(id){
   pushHistory({screen:id, overlay:false});
 }
 
+/* The topbar's Rules/Record/Save/Load/Gallery/Keep Watch buttons sit
+   behind the overlay's opaque background but stay in the DOM — without
+   this, a keyboard user tabbing through overlay content eventually tabs
+   onto those invisible buttons instead of looping back inside the dialog. */
+function setBackgroundInert(inert){
+  const topbar = $('topbar'), wrap = document.querySelector('.wrap');
+  if(topbar) topbar.inert = inert;
+  if(wrap) wrap.inert = inert;
+}
 /* Shared modal open/close for every #overlay consumer (Rules, Record's
    sibling "Keep Watch"/Gallery — the Chronicle itself is a real screen,
    not an overlay). Centralized here, rather than in each caller, so
@@ -33,14 +43,19 @@ export function show(id){
 export function openOverlay(){
   lastFocusBeforeOverlay = document.activeElement;
   $('overlay').style.display = 'block';
+  setBackgroundInert(true);
   pushHistory({...currentScreenState(), overlay:true});
 }
 export function closeOverlay(){
   if($('overlay').style.display !== 'block') return;
   $('overlay').style.display = 'none';
+  setBackgroundInert(false);
   lastFocusBeforeOverlay?.focus?.();
   lastFocusBeforeOverlay = null;
   if(!suppressHistory && history.state?.overlay) history.back();
+  if(typeof CustomEvent !== "undefined") {
+    try { document.dispatchEvent(new CustomEvent("sp:overlayClosed")); } catch(_){}
+  }
 }
 
 function currentScreenState(){
@@ -65,7 +80,7 @@ export function initHistoryNav(){
     try{
       if($('overlay').style.display==='block' && !st.overlay) closeOverlay();
       if(st.screen && $(st.screen) && !$(st.screen).classList.contains('active')) show(st.screen);
-      if(st.overlay && $('overlay').style.display!=='block') $('overlay').style.display='block';
+      if(st.overlay && $('overlay').style.display!=='block'){ $('overlay').style.display='block'; setBackgroundInert(true); }
     } finally { suppressHistory = false; }
   });
 }
@@ -83,6 +98,7 @@ export function dismissFirstrunHint(){
 
 export function renderTopbar(){
   const G = State.G;
+  applyArtStyleTheme(G?.artStyle);
   const tb = $('topbar');
   if(!G){ tb.style.display='none'; return; }
   tb.style.display='flex';
@@ -90,6 +106,6 @@ export function renderTopbar(){
   const roomEl = $('tb-room');
   if(roomEl){ roomEl.textContent = State.onlineRoomCode ? `Room ${State.onlineRoomCode}` : ''; roomEl.title = State.onlineRoomCode ? 'Share this room code' : ''; }
   const counts = actToneCounts();
-  $('tb-tones').innerHTML = TONES.map(t=>`<span class="tone count ${t}" title="${t} this act">${counts[t]}</span>`).join('');
+  $('tb-tones').innerHTML = TONES.map(t=>toneCountBadge(t, counts[t])).join('');
   if(!State.onlineRoomCode) mirrorState(); // Stage 2 shadow write, hotseat mode only — real sync (js/sync/liveActions.js) handles online rooms
 }

@@ -803,3 +803,38 @@ label.fld{display:block;margin:12px 0 4px;color:var(--gold);font-family:'IM Fell
   .lobby-incident{grid-template-columns:82px minmax(0,1fr)}
   .lobby-incident-art{width:82px}
 }
+
+/* ---------- keyboard focus, everywhere a custom control needs it ---------- */
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,
+[role="button"]:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--moon);outline-offset:3px}
+
+/* ---------- art-style-reactive surfaces ----------
+   Painterly Gothic is the default look already baked into the rules above:
+   soft cinematic shadows and warm gold/oxblood borders. When a tale is set
+   to Tarot Gothic, the same surfaces swap only their border/shadow
+   treatment for a bolder, ceremonial jewel-tone glow — never layout,
+   spacing, or content color — so the chrome around the cards echoes
+   whichever visual language is actually being read right now. */
+:root[data-art-style="tarot"] .panel,
+:root[data-art-style="tarot"] .card,
+:root[data-art-style="tarot"] .hookcard,
+:root[data-art-style="tarot"] .gtile-media,
+:root[data-art-style="tarot"] .gdetail-media,
+:root[data-art-style="tarot"] .arch,
+:root[data-art-style="tarot"] .ppanel,
+:root[data-art-style="tarot"] .disclose{
+  border-color:rgba(199,214,204,.55);
+  box-shadow:0 0 0 1px rgba(10,8,6,.75), 0 0 22px rgba(199,214,204,.14);
+}
+:root[data-art-style="tarot"] .card.selectable:hover,
+:root[data-art-style="tarot"] .hookcard:hover{
+  border-color:var(--gold);
+  box-shadow:0 0 0 1px rgba(176,141,63,.4), 0 0 26px rgba(199,214,204,.22);
+}
+:root[data-art-style="tarot"] .card.selected{
+  box-shadow:0 0 0 2px var(--blood-bright), 0 0 20px rgba(199,214,204,.18);
+}
+:root[data-art-style="tarot"] #topbar{
+  border-bottom-color:rgba(199,214,204,.4);
+  box-shadow:0 6px 20px rgba(199,214,204,.08);
+}
