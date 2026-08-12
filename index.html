@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- The documented architecture uses inline onclick/oninput/onchange handlers; script-src 'unsafe-inline' preserves them until that out-of-scope migration. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://firestore.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://www.googleapis.com https://*.googleapis.com https://*.firebaseio.com;">
 <title>Bleakwood Vale — A Penny Dreadful Mystery</title>
 <link rel="stylesheet" href="css/style.css">
 </head>

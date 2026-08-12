@@ -4,6 +4,11 @@ import { State } from '../engine/state.js';
 import { faceUp } from '../engine/rules.js';
 import { openOverlay } from '../ui/screens.js';
 
+// Markdown export has its own sink escaping; HTML esc() is not sufficient here.
+function mdText(value){
+  return String(value ?? '').replace(/\\/g, '\\\\').replace(/([#*`\[\]\(\)])/g, '\\$1');
+}
+
 export function buildMarkdown(){
   const G = State.G;
   const L = [];
@@ -12,17 +17,17 @@ export function buildMarkdown(){
   const hookTitle = (G && G.hook && G.hook.title) ? G.hook.title : 'An Untold Tale';
   L.push(`## ${hookTitle}`);
 
-  const victimName = (G && G.victim && G.victim.name) ? G.victim.name : 'the Deceased';
+  const victimName = (G && G.victim && G.victim.name) ? mdText(G.victim.name) : 'the Deceased';
   L.push(`*Being a true & faithful account of the death of **${victimName}**.*`, '');
 
   L.push('### Concerning the Victim');
   const facts = (G && G.victim && Array.isArray(G.victim.facts)) ? G.victim.facts : [];
   facts.forEach(f => {
     if (!f) return;
-    const who = f.who || 'Unnamed';
+    const who = mdText(f.who || 'Unnamed');
     const role = f.role || 'No Role';
     const q = f.q || '';
-    const a = f.a || '';
+    const a = mdText(f.a || '');
     L.push(`- **${who}** (${role}) — *“${q}”* — ${a}`);
   });
 
@@ -30,7 +35,7 @@ export function buildMarkdown(){
   const archetypes = (G && Array.isArray(G.archetypes)) ? G.archetypes : [];
   archetypes.forEach(a => {
     if (!a) return;
-    const name = a.name || a.role || 'Unnamed Archetype';
+    const name = mdText(a.name || a.role || 'Unnamed Archetype');
     const role = a.role || 'No Role';
     const flippedText = a.flipped ? ' *(turned)*' : '';
     let tone = 'Unknown';
@@ -54,12 +59,12 @@ export function buildMarkdown(){
     list.forEach(e=>{
       if (e.type === 'note') {
         if (e.text && String(e.text).trim()) {
-          L.push('', `*${String(e.text).trim()}*`);
+          L.push('', `*${mdText(String(e.text).trim())}*`);
         }
         return;
       }
       if (e.type === 'secret') {
-        const playerName = e.playerName || 'Anonymous';
+        const playerName = mdText(e.playerName || 'Anonymous');
         const question = e.question || 'A Secret';
         L.push('', `### ✧ A Hidden Sin Revealed — ${playerName}`);
         L.push(`> **“${question}”**`);
@@ -67,7 +72,7 @@ export function buildMarkdown(){
         const omenTitles = omens.map(o => (o && o.title) || 'Unknown Omen').filter(Boolean);
         const omenText = omenTitles.length ? omenTitles.join(', ') : 'no omens';
         L.push(`*Answered through the omens: ${omenText}.*`);
-        if (e.answer) L.push('', e.answer);
+        if (e.answer) L.push('', mdText(e.answer));
         return;
       }
 
@@ -75,8 +80,8 @@ export function buildMarkdown(){
       const cardTitle = e.cardTitle || 'An Untitled Card';
       L.push('', `### ${isClose ? 'ACT CLOSE — ' : ''}${cardTitle}`);
 
-      const playerName = e.playerName || 'Someone';
-      const archName = e.archName || 'Unnamed';
+      const playerName = mdText(e.playerName || 'Someone');
+      const archName = mdText(e.archName || 'Unnamed');
       const archRole = e.archRole || 'No Role';
       const tonesList = Array.isArray(e.tones) ? e.tones.map(t => t || 'Unknown') : [];
       const tonesText = tonesList.length ? tonesList.join(', ') : 'None';
@@ -86,25 +91,25 @@ export function buildMarkdown(){
         L.push(`*Commanded to include: ${String(e.element).trim()}*`);
       }
       if (e.opening && typeof e.opening === 'string' && e.opening.trim()) {
-        L.push('', `> ${e.opening.trim().replace(/\n/g,'\n> ')}`);
+        L.push('', `> ${mdText(e.opening.trim()).replace(/\n/g,'\n> ')}`);
       }
 
       const contributions = Array.isArray(e.contributions) ? e.contributions : [];
       contributions.forEach(x => {
         if (!x) return;
         const cTitle = x.title || 'Untitled';
-        const cPlayerName = x.playerName || 'Anonymous';
-        const howText = (x.how && typeof x.how === 'string' && x.how.trim()) ? ` — ${x.how.trim()}` : '';
+        const cPlayerName = mdText(x.playerName || 'Anonymous');
+        const howText = (x.how && typeof x.how === 'string' && x.how.trim()) ? ` — ${mdText(x.how.trim())}` : '';
         L.push(`- **${cTitle}** (${cPlayerName})${howText}`);
       });
 
       if (e.happened && String(e.happened).trim()) {
-        L.push('', String(e.happened).trim());
+        L.push('', mdText(String(e.happened).trim()));
       }
 
       const flips = Array.isArray(e.flips) ? e.flips.filter(Boolean) : [];
       if (flips.length) {
-        L.push('', `*${flips.join('; ')}.*`);
+        L.push('', `*${flips.map(mdText).join('; ')}.*`);
       }
     });
   });

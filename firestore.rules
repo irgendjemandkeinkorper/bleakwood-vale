@@ -9,16 +9,78 @@ rules_version = '2';
 //   rooms/{roomCode}/private/{uid}   – that player's hand + Hidden Sin(s),
 //                                      readable/writable only by that uid.
 //
-// Known, accepted limitation: without a Cloud Function, these rules can
-// verify WHO is writing to the public room doc (a seated participant) but
-// not the full SHAPE of the write (e.g. that they aren't setting their own
-// scenesLeft to 99). This mirrors the game's existing "trust the table"
-// design — the whole ruleset already runs on that same trust via the Strike
-// mechanic — so it's a deliberate tradeoff for staying serverless rather
-// than a bug to chase down. Revisit with a Cloud Function if that trust
-// model ever needs tightening.
+// These rules verify WHO writes and validate the bounded shape of fields we
+// can inspect without a Cloud Function. They still cannot prove that a
+// permitted player is narrating honestly or that every nested card/journal
+// value came from the published game data; that remains a deliberate
+// serverless trust boundary.
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function validPlayer(player) {
+      return player is map
+             && player.keys().hasAll(['name', 'uid', 'omens', 'handCount', 'secretsCount', 'unrevealedSecretsCount', 'scenesLeft', 'readyRole'])
+             && player.name is string
+             && player.uid is string
+             && player.omens is list
+             && player.omens.size() <= 6
+             && player.handCount is number
+             && player.handCount >= 0 && player.handCount <= 5
+             && player.secretsCount is number
+             && player.secretsCount >= 0 && player.secretsCount <= 2
+             && player.unrevealedSecretsCount is number
+             && player.unrevealedSecretsCount >= 0 && player.unrevealedSecretsCount <= 2
+             && player.scenesLeft is number
+             && player.scenesLeft >= 0 && player.scenesLeft <= 3;
+    }
+
+    function validPlayers(players) {
+      return players is list
+             && players.size() >= 1 && players.size() <= 6
+             && validPlayer(players[0])
+             && (players.size() < 2 || validPlayer(players[1]))
+             && (players.size() < 3 || validPlayer(players[2]))
+             && (players.size() < 4 || validPlayer(players[3]))
+             && (players.size() < 5 || validPlayer(players[4]))
+             && (players.size() < 6 || validPlayer(players[5]));
+    }
+
+    function validRoomShape() {
+      return request.resource.data.seats is map
+             && validPlayers(request.resource.data.players)
+             && request.resource.data.act is number
+             && request.resource.data.act >= 0 && request.resource.data.act <= 3
+             && request.resource.data.archIdx is number
+             && request.resource.data.archIdx >= 0 && request.resource.data.archIdx <= 6
+             && request.resource.data.omenRow is list
+             && request.resource.data.omenRow.size() <= 6
+             && request.resource.data.omenDeck is list
+             && request.resource.data.omenDeck.size() <= 100
+             && request.resource.data.sceneDeck is list
+             && request.resource.data.sceneDeck.size() <= 100
+             && request.resource.data.journal is list
+             && request.resource.data.journal.size() <= 100
+             && request.resource.data.discardTones is list
+             && request.resource.data.discardTones.size() <= 20
+             && request.resource.data.closeDone is bool
+             && (request.resource.data.current == null || request.resource.data.current is map)
+             && (request.resource.data.pendingSecret == null || request.resource.data.pendingSecret is map);
+    }
+
+    function validPrivateShape() {
+      return request.resource.data.keys().hasAll(['hand', 'secrets'])
+             && request.resource.data.hand is list
+             && request.resource.data.hand.size() <= 5
+             && request.resource.data.secrets is list
+             && request.resource.data.secrets.size() <= 2;
+    }
+
+    function validMirrorShape() {
+      return request.resource.data.snapshot is map
+             && request.resource.data.seats is map
+             && request.resource.data.updatedAt is number
+             && request.resource.data.updatedAt >= 0;
+    }
 
     match /rooms/{roomCode} {
       allow read: if request.auth != null;
@@ -27,9 +89,10 @@ service cloud.firestore {
       // one adding you as a new seat (joining the lobby).
       allow update: if request.auth != null
                     && (request.auth.uid in resource.data.seats
-                        || request.auth.uid in request.resource.data.seats);
+                        || request.auth.uid in request.resource.data.seats)
+                    && (validRoomShape() || validMirrorShape());
 
-      allow create: if request.auth != null; // hosting a brand-new room
+      allow create: if request.auth != null && (validRoomShape() || validMirrorShape()); // hosting a brand-new room
       allow delete: if false;                // reaped via Firestore TTL policy, not client code
     }
 
@@ -48,7 +111,8 @@ service cloud.firestore {
       // narrating dishonestly at the table either.
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if request.auth != null
-                   && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomCode)).data.seats;
+                   && request.auth.uid in get(/databases/$(database)/documents/rooms/$(roomCode)).data.seats
+                   && validPrivateShape();
     }
   }
 }

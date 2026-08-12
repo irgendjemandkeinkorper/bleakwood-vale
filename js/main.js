@@ -34,6 +34,55 @@ import {
   onlineRefreshArtPicker, openOnlineHand, onlineSetReady, onlineSwapArchSetup, onlineChooseArchSwap, onlineVoteOmen
 } from './ui/online.js';
 
+let lastAction = 'startup';
+
+function actionNameFrom(target){
+  const handler = target?.closest?.('[onclick]')?.getAttribute('onclick') || '';
+  const match = handler.match(/^\s*([A-Za-z_$][\w$]*)/);
+  return match ? match[1] : (target?.id || target?.tagName?.toLowerCase() || 'unknown');
+}
+
+function runtimeContext(){
+  return {
+    screen: document.querySelector('.screen.active')?.id || 'unknown',
+    action: lastAction
+  };
+}
+
+function showRuntimeFailure(kind){
+  const context = runtimeContext();
+  console.error(`[runtime] ${kind}`, context);
+
+  try {
+    let notice = document.getElementById('runtime-error');
+    if(!notice){
+      notice = document.createElement('div');
+      notice.id = 'runtime-error';
+      notice.setAttribute('role', 'alertdialog');
+      notice.setAttribute('aria-live', 'assertive');
+      notice.style.cssText = 'position:fixed;inset:20px;z-index:9999;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;padding:28px;background:rgba(18,12,15,.97);border:1px solid #9b4b4b;color:#eadfc7;text-align:center;box-shadow:0 0 40px rgba(0,0,0,.8)';
+      const heading = document.createElement('h2');
+      heading.textContent = 'The Vale has fallen silent.';
+      const message = document.createElement('p');
+      message.textContent = 'Something in the machinery of the tale faltered. Your story is not lost; restore the page and take up the thread again.';
+      const retry = document.createElement('button');
+      retry.className = 'primary';
+      retry.textContent = 'Restore the Tale';
+      retry.addEventListener('click', () => window.location.reload());
+      notice.append(heading, message, retry);
+      document.body.appendChild(notice);
+    }
+  } catch(_) {
+    // The console context above is the last-resort signal if the UI is broken too.
+  }
+}
+
+document.addEventListener('click', event => { lastAction = actionNameFrom(event.target); }, true);
+document.addEventListener('input', event => { lastAction = `input:${event.target?.id || 'unknown'}`; }, true);
+document.addEventListener('change', event => { lastAction = `change:${event.target?.id || 'unknown'}`; }, true);
+window.onerror = () => { showRuntimeFailure('uncaught error'); return true; };
+window.addEventListener('unhandledrejection', event => { event.preventDefault(); showRuntimeFailure('unhandled rejection'); });
+
 Object.assign(window, {
   show, flipArchCard, gameArtImgError, showIdleClicker, idleClick, dismissFirstrunHint,
   showGallery, setGalleryStyle, setGalleryCat, openGalleryDetail, closeGalleryDetail,
