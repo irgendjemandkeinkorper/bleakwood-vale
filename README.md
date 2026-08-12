@@ -7,6 +7,25 @@ together in three acts. Runs entirely in the browser.
 See `Bleakwood-Vale-Design-Bible.docx` for the full design/rules reference and
 `Tall_Pines_Rules_r5.md` for the original tabletop rules this is adapted from.
 
+See `CONTRIBUTING.md` for the `window` bridge pattern, the `esc()` escaping
+convention, and the art-generation script order.
+
+## License
+
+This project's own code, documentation, and original content are MIT
+licensed — see `LICENSE`.
+
+That grant does **not** extend to `Tall_Pines_Rules_r5.md` or any text/rules
+adapted from it. Bleakwood Vale is a "gothic re-imagining" of Miles
+Gaborit's tabletop game *Tall Pines*: it reuses the game's structure (a
+one-session, card-driven murder mystery told in three acts) and adapts rules
+text under that design, but this repository does not have confirmed
+permission from the original rights holder to redistribute
+`Tall_Pines_Rules_r5.md` or derived rules text. That status is currently
+**unresolved** — anyone reusing this repo's game content (as opposed to its
+code) should independently verify Tall Pines' own license/permission terms
+before doing so.
+
 ## Status
 
 Hotseat (one browser tab, shared screen) and real-time remote multiplayer via
