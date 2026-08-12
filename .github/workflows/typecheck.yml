@@ -1,0 +1,19 @@
+name: JavaScript typecheck
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Non-blocking for now: the initial run surfaced ~950 pre-existing
+      # errors (see tracking issue for baselining/fixing them incrementally).
+      # Flip continue-on-error to false once that baseline is cleared.
+      - name: Run TypeScript check
+        continue-on-error: true
+        run: npx -y -p typescript tsc --checkJs --noEmit -p jsconfig.json
