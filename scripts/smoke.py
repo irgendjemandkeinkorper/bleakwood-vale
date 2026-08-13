@@ -55,7 +55,11 @@ def run() -> None:
     try:
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
-            context = browser.new_context(viewport={"width": 1280, "height": 900})
+            # bypass_csp: index.html ships a real CSP without 'unsafe-eval' (#29);
+            # Playwright's own instrumentation (wait_for_function etc.) needs eval
+            # in-page, which that CSP correctly blocks for real visitors. This is a
+            # test-harness-only bypass and does not change the shipped policy.
+            context = browser.new_context(viewport={"width": 1280, "height": 900}, bypass_csp=True)
             page = context.new_page()
             page.on("pageerror", lambda error: errors.append(f"pageerror: {error}"))
             page.on(
@@ -220,7 +224,7 @@ def run() -> None:
             assert page.get_by_role("button", name="Never mind", exact=True).count() == 1
 
             # A fresh narrow viewport must not introduce page overflow.
-            mobile_context = browser.new_context(viewport={"width": 390, "height": 844})
+            mobile_context = browser.new_context(viewport={"width": 390, "height": 844}, bypass_csp=True)
             mobile = mobile_context.new_page()
             mobile.goto(base, wait_until="domcontentloaded")
             mobile.wait_for_function("typeof window.showGallery === 'function'")
